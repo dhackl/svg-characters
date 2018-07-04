@@ -1,0 +1,87 @@
+#character-props {
+    width: 50%;
+    float: left;
+}
+
+#character-preview {
+    width: 50%;
+    float: left;
+}
+#character-preview svg {
+    padding: 100px;
+    height: 600px;
+}
+
+.prop-slider {
+    width: 100%;
+}
+
+.prop-label {
+    color: #aaa;
+    text-transform: uppercase;
+    display: block;
+    text-align: left;
+    padding: 0 15px;
+    font-weight: bold;
+    font-size: 90%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 80%;
+    height: 8px;
+    border-radius: 5px;   
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%; 
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.prop-colorpicker {
+    width: 100%;
+    padding: 5px;
+}
+.prop-colorpicker input[type="color"] {
+    width: 80%;
+}
+
+.prop-value {
+    width: 15%;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+.prop-groupbox {
+    margin: 10px;
+    width: 45%;
+    float: left;
+}
+
+.prop-groupbox h3 {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: left;
+    background: #ccc;
+    margin: 20px 5px;
+    padding: 5px;
+    color: #555;
+}

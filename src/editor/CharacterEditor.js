@@ -8,6 +8,10 @@ import Ears from './Ears';
 import Mouth from './Mouth';
 import Eyebrows from './Eyebrows';
 import Neck from './Neck';
+import Nose from './Nose';
+import Hair from './Hair';
+import Torso from './Torso';
+import Arm from './Arm';
 
 export default class CharacterEditor extends Component {
 
@@ -15,18 +19,21 @@ export default class CharacterEditor extends Component {
         super(props);
 
         this.state = {
+            body: {
+                skinColor: '#f3bf85'
+            },
             head: {
                 width: 60,
-                height: 90,
-                skinColor: '#f3bf85'
+                height: 90
             },
             eye: {
                 distance: 25,
                 width: 15,
-                height: 8
+                height: 8,
+                eyeLid: 20
             },
             ear: {
-                color: '#f3bf85'
+                
             },
             mouth: {
                 width: 15,
@@ -36,12 +43,21 @@ export default class CharacterEditor extends Component {
                 width: 30,
                 height: 30
             },
+            nose: {
+                width: 20,
+                height: 20
+            },
             headBounds: new Rectangle(),
             svg: '',
             zoom: 1.5
         };
 
         this.characterProperties = [{
+            cat: 'body',
+            name: 'skinColor',
+            type: 'color',
+            val: '#f3bf85',
+        }, {
             cat: 'head',
             name: 'width',
             min: 20,
@@ -53,11 +69,6 @@ export default class CharacterEditor extends Component {
             min: 20,
             max: 120,
             val: 90,
-        }, {
-            cat: 'head',
-            name: 'skinColor',
-            type: 'color',
-            val: '#f3bf85',
         }, {
             cat: 'eye',
             name: 'distance',
@@ -77,10 +88,11 @@ export default class CharacterEditor extends Component {
             max: 20,
             val: 8
         }, {
-            cat: 'ear',
-            name: 'color',
-            type: 'color',
-            val: '#f3bf85'
+            cat: 'eye',
+            name: 'eyeLid',
+            min: 0,
+            max: 100,
+            val: 20
         }, {
             cat: 'mouth',
             name: 'width',
@@ -105,6 +117,18 @@ export default class CharacterEditor extends Component {
             min: 5,
             max: 50,
             val: 30
+        }, {
+            cat: 'nose',
+            name: 'width',
+            min: 5,
+            max: 50,
+            val: 20
+        }, {
+            cat: 'nose',
+            name: 'height',
+            min: 5,
+            max: 50,
+            val: 20
         }];
 
         this.buildSVG = this.buildSVG.bind(this);
@@ -193,21 +217,28 @@ export default class CharacterEditor extends Component {
                                 <stop offset="1" stopColor="#bc5d38" />                                
                             </linearGradient>
                             <linearGradient id="neck-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0" stopColor={ColorUtils.blend(this.state.head.skinColor, '#552200', 0.2)} />
-                                <stop offset="1" stopColor={this.state.head.skinColor} />                                
+                                <stop offset="0" stopColor={ColorUtils.blend(this.state.body.skinColor, '#552200', 0.2)} />
+                                <stop offset="1" stopColor={this.state.body.skinColor} />                                
                             </linearGradient>
                         </defs>
 
                         <g id="character-outer" transform={`scale(${this.state.zoom} ${this.state.zoom})`}>
                             <Neck neckProps={this.state.neck} headBounds={this.state.headBounds} />
 
-                            <path id="head-main" d={this.state.svg} style={{fill: this.state.head.skinColor}} />
+                            <path id="head-main" d={this.state.svg} style={{fill: this.state.body.skinColor}} />
 
-                            <Eyes eyeProps={this.state.eye} headBounds={this.state.headBounds} />
+                            <Eyes eyeProps={this.state.eye} bodyProps={this.state.body} headBounds={this.state.headBounds} />
                             <Eyebrows eyeProps={this.state.eye} headBounds={this.state.headBounds} />
 
-                            <Ears earProps={this.state.ear} headBounds={this.state.headBounds} />
+                            <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
                             <Mouth mouthProps={this.state.mouth} headBounds={this.state.headBounds} />
+                            <Nose noseProps={this.state.nose} bodyProps={this.state.body} headBounds={this.state.headBounds} />
+
+                            <Hair headBounds={this.state.headBounds} />
+
+                            <Torso bodyProps={this.state.body} />
+                            <Arm id="left-arm" bodyProps={this.state.body} transform={`translate(-40 180) scale(4 4)`} />
+                            <Arm id="right-arm" bodyProps={this.state.body} transform={`translate(120 180) scale(-4 4)`} />
                         </g>
                     </svg>
                 </div>

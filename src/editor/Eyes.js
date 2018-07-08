@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ColorUtils from './../util/ColorUtils';
 
 export default class Eyes extends Component {
 
@@ -13,7 +14,22 @@ export default class Eyes extends Component {
         var top = 0 - Number(this.props.eyeProps.height);
         var bottom = 0 + Number(this.props.eyeProps.height);
 
-        var s = 5;
+        var pathStr = `
+        M ${right} 0 
+        C ${right} 0 ${right / 2} ${bottom} 0 ${bottom}
+          ${left / 2} ${bottom} ${left} 0 ${left} 0 
+          ${left} 0 ${left / 2} ${top} 0 ${top}
+          ${right / 2} ${top} ${right} 0 ${right} 0 Z
+        `;
+
+        return pathStr;
+    }
+
+    buildEyeLid() {
+        var right = 0 + Number(this.props.eyeProps.width);
+        var left = 0 - Number(this.props.eyeProps.width);
+        var top = 0 - Number(this.props.eyeProps.height);
+        var bottom = top + this.props.eyeProps.height * 2 * (this.props.eyeProps.eyeLid * 0.01); // Lid
 
         var pathStr = `
         M ${right} 0 
@@ -28,6 +44,7 @@ export default class Eyes extends Component {
 
     render() {
         let d = this.buildSVG();
+        let dLid = this.buildEyeLid();
 
         let width = this.props.eyeProps.width;
         let innerEye = (
@@ -35,15 +52,15 @@ export default class Eyes extends Component {
                 <ellipse
                     cx={0} 
                     cy={0} 
-                    rx={width * 0.4}
-                    ry={width * 0.4}
+                    rx={width * 0.3}
+                    ry={width * 0.35}
                     style={{fill: '#000'}} />
                 <ellipse
                     cx={0} 
                     cy={0} 
-                    rx={width * 0.3}
-                    ry={width * 0.3}
-                    style={{fill: '#444'}} />
+                    rx={width * 0.2}
+                    ry={width * 0.25}
+                    style={{fill: '#666'}} />
                 <ellipse
                     cx={0 + width * 0.06} 
                     cy={0 + width * 0.06} 
@@ -52,9 +69,9 @@ export default class Eyes extends Component {
                     style={{fill: '#fff'}} />
                 <rect
                     x={0}
-                    y={0 - width * 0.6}
-                    width={width * 0.6}
-                    height={width * 0.4}
+                    y={0 - width * 0.4}
+                    width={width * 0.5}
+                    height={width * 0.3}
                     style={{fill: '#fff', fillOpacity: 0.25}} />
             </g>
         );
@@ -64,10 +81,12 @@ export default class Eyes extends Component {
                 <g id="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}
+                    <path d={dLid} style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
                 </g>
                 <g id="right-eye" transform={`translate(${this.props.eyeProps.distance} 0) scale(-1 1)`}>
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}
+                    <path d={dLid} style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
                 </g>                
             </g>
         );

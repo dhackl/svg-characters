@@ -30,26 +30,4 @@ export default class Neck extends Component {
             </g>
         );
     }
-
-    /*render() {
-        let d = this.buildSVG();
-
-        return (
-            <g id="eyes-group">
-                <ellipse id="left-eye"
-                    cx={Number(this.props.headBounds.left()) + Number(this.props.eyeProps.distance)} 
-                    cy={this.props.headBounds.top() + 50} 
-                    rx={this.props.eyeProps.width}
-                    ry={this.props.eyeProps.height}
-                    style={{fill: '#fff'}} />
-
-                <ellipse id="right-eye"
-                    cx={this.props.headBounds.right() - this.props.eyeProps.distance} 
-                    cy={this.props.headBounds.top() + 50} 
-                    rx={this.props.eyeProps.width}
-                    ry={this.props.eyeProps.height}
-                    style={{fill: '#fff'}} />
-            </g>
-        )
-    }*/
 }

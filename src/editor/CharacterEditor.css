@@ -8,8 +8,9 @@
     float: left;
 }
 #character-preview svg {
-    padding: 100px;
+    padding: 50px 250px;
     height: 600px;
+    width: 100px;
 }
 
 .prop-slider {

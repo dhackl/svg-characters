@@ -24,10 +24,10 @@ export default class Ears extends Component {
         return (
             <g id="ears-group">
                 <g id="ear-eye" transform={`translate(${this.props.headBounds.left() - 5} 40) scale(3 3)`} >
-                    <path d={d} style={{fill: this.props.earProps.color}} />
+                    <path d={d} style={{fill: this.props.bodyProps.skinColor}} />
                 </g>
                 <g id="ear-eye" transform={`translate(${this.props.headBounds.right() + 5} 40) scale(-3 3)`} >
-                    <path d={d} style={{fill: this.props.earProps.color}} />
+                    <path d={d} style={{fill: this.props.bodyProps.skinColor}} />
                 </g>                
             </g>
         );

@@ -6,6 +6,19 @@ export default class Hair extends Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            hairCreated: false,
+            hairPath: ''
+        };
+    }
+
+    componentDidMount() {
+        this.buildSVG();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        //this.buildSVG();
     }
 
     buildSVG() {
@@ -27,7 +40,7 @@ export default class Hair extends Component {
         for (let i = 1; i < noHorizontalPoints - 1; i++) {
             //let y = (i % 2 == 0) minBottom + Math.random() * (maxBottom - minBottom) : minTop + Math.random() * (maxTop - minTop);
             let y = min + Math.random() * (max - min);
-            points.push(new Point(offset, i % 2 == 0 ? y : -y));
+            points.push(new Point(offset, i % 2 === 0 ? y : -y));
         }
 
         let pointsStr = ' ';
@@ -41,11 +54,13 @@ export default class Hair extends Component {
         c ${-width / 2},${-width / 4} ${-width / 2},${-width / 4} ${-offset * (noHorizontalPoints - 2)},0 z
         `;
 
-        return pathStr;
+        this.setState({
+            hairPath: pathStr
+        });
     }
 
     render() {
-        let d = this.buildSVG();
+        let d = this.state.hairPath;
 
         return (
             <g id="hair-group" transform={`translate(${this.props.headBounds.left()} ${this.props.headBounds.top() - 40})`}  >

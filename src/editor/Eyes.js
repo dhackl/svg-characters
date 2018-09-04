@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import SVG from 'svg.js';
 import ColorUtils from './../util/ColorUtils';
 
 export default class Eyes extends Component {
@@ -6,6 +7,10 @@ export default class Eyes extends Component {
     constructor(props) {
         super(props);
 
+    }
+
+    componentDidMount() {
+        //SVG.get('eye-lid').animate(100).attr({ d: this.buildEyeLid(1) }).loop(true, true);
     }
 
     buildSVG() {
@@ -25,11 +30,11 @@ export default class Eyes extends Component {
         return pathStr;
     }
 
-    buildEyeLid() {
-        var right = 0 + Number(this.props.eyeProps.width);
-        var left = 0 - Number(this.props.eyeProps.width);
-        var top = 0 - Number(this.props.eyeProps.height);
-        var bottom = top + this.props.eyeProps.height * 2 * (this.props.eyeProps.eyeLid * 0.01); // Lid
+    buildEyeLid(lidSize) {
+        var right = 0 + this.props.eyeProps.width;
+        var left = 0 - this.props.eyeProps.width;
+        var top = 0 - this.props.eyeProps.height;
+        var bottom = top + this.props.eyeProps.height * 2 * lidSize; // Lid
 
         var pathStr = `
         M ${right} 0 
@@ -44,7 +49,7 @@ export default class Eyes extends Component {
 
     render() {
         let d = this.buildSVG();
-        let dLid = this.buildEyeLid();
+        let dLid = this.buildEyeLid(this.props.eyeProps.eyeLid * 0.01);
 
         let width = this.props.eyeProps.width;
         let innerEye = (
@@ -81,7 +86,7 @@ export default class Eyes extends Component {
                 <g id="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}
-                    <path d={dLid} style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
+                    <path d={dLid} id="eye-lid" style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
                 </g>
                 <g id="right-eye" transform={`translate(${this.props.eyeProps.distance} 0) scale(-1 1)`}>
                     <path d={d} style={{fill: '#fff'}} />
@@ -91,26 +96,4 @@ export default class Eyes extends Component {
             </g>
         );
     }
-
-    /*render() {
-        let d = this.buildSVG();
-
-        return (
-            <g id="eyes-group">
-                <ellipse id="left-eye"
-                    cx={Number(this.props.headBounds.left()) + Number(this.props.eyeProps.distance)} 
-                    cy={this.props.headBounds.top() + 50} 
-                    rx={this.props.eyeProps.width}
-                    ry={this.props.eyeProps.height}
-                    style={{fill: '#fff'}} />
-
-                <ellipse id="right-eye"
-                    cx={this.props.headBounds.right() - this.props.eyeProps.distance} 
-                    cy={this.props.headBounds.top() + 50} 
-                    rx={this.props.eyeProps.width}
-                    ry={this.props.eyeProps.height}
-                    style={{fill: '#fff'}} />
-            </g>
-        )
-    }*/
 }

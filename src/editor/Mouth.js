@@ -34,8 +34,11 @@ export default class Mouth extends Component {
         let d = this.buildSVG();
         let dLipCrack = this.buildLipCrack();
 
+        let width = this.props.mouthProps.width * 0.05;
+        let height = this.props.mouthProps.height * 0.1;
+
         return (
-            <g id="mouth-group" transform={`translate(25 ${this.props.headBounds.bottom() - 40}) scale(1 1)`}>
+            <g id="mouth-group" transform={`translate(${20 + (1 - width) * 20} ${this.props.headBounds.bottom() - 40}) scale(${width} ${height})`}>
                 <path d={d} style={{fill: 'url(#mouth-gradient)'}} />
                 <path d={dLipCrack} style={{fill: '#944527'}} />
             </g>

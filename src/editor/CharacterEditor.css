@@ -9,7 +9,7 @@
 }
 #character-preview svg {
     padding: 50px 250px;
-    height: 600px;
+    height: 2000px;
     width: 100px;
 }
 
@@ -86,3 +86,13 @@
     padding: 5px;
     color: #555;
 }
+
+/*#left-leg {
+    animation: left-leg-walk infinite 5s linear;
+}
+
+@keyframes left-leg-walk {
+    0% { transform: scale(3.5); }
+    50% { transform: scale(3.9); }
+    100% { transform: scale(3.5); }
+}*/

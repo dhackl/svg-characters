@@ -50,12 +50,18 @@ class UpperArm extends Component {
         return pathStr;
     }
 
+    sidePose() {
+        //return ;
+    }
+
     render() {
         let dShoulder = this.buildShoulder();
         let dArm = this.buildArm();
         //let width = this.props.noseProps.width * 0.1;
         //let height = this.props.noseProps.height * 0.1;
         
+        let offsetX = this.props.bodyProps.direction == 1 ? 10 : 0;
+
         return (
             <g id="upper-arm-group" transform={`rotate(20 5 5)`}>
                 <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12)`} />

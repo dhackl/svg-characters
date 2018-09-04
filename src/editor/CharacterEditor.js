@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import SVG from 'svg.js';
+
 import './CharacterEditor.css';
 import Point from '../util/Point';
 import Rectangle from '../util/Rectangle';
@@ -12,6 +14,7 @@ import Nose from './Nose';
 import Hair from './Hair';
 import Torso from './Torso';
 import Arm from './Arm';
+import Leg from './Leg';
 
 export default class CharacterEditor extends Component {
 
@@ -20,11 +23,16 @@ export default class CharacterEditor extends Component {
 
         this.state = {
             body: {
-                skinColor: '#f3bf85'
+                direction: 0,
+                skinColor: '#f3bf85',
+                fat: 5,
+                muscles: 10
             },
             head: {
                 width: 60,
-                height: 90
+                height: 90,
+                roundnessTop: 20,
+                roundnessBottom: 20
             },
             eye: {
                 distance: 25,
@@ -44,8 +52,8 @@ export default class CharacterEditor extends Component {
                 height: 30
             },
             nose: {
-                width: 20,
-                height: 20
+                width: 30,
+                height: 35
             },
             headBounds: new Rectangle(),
             svg: '',
@@ -54,38 +62,62 @@ export default class CharacterEditor extends Component {
 
         this.characterProperties = [{
             cat: 'body',
+            name: 'direction',
+            min: 0,
+            max: 3,
+            val: 0
+        }, {
+            cat: 'body',
             name: 'skinColor',
             type: 'color',
             val: '#f3bf85',
         }, {
+            cat: 'body',
+            name: 'fat',
+            min: 0,
+            max: 30,
+            val: 5,
+        }, {
             cat: 'head',
             name: 'width',
-            min: 20,
-            max: 120,
+            min: 50,
+            max: 70,
             val: 60,
         }, {
             cat: 'head',
             name: 'height',
-            min: 20,
-            max: 120,
+            min: 80,
+            max: 100,
             val: 90,
+        }, {
+            cat: 'head',
+            name: 'roundnessTop',
+            min: 5,
+            max: 40,
+            val: 20,
+        }, {
+            cat: 'head',
+            name: 'roundnessBottom',
+            min: 5,
+            max: 40,
+            val: 20,
         }, {
             cat: 'eye',
             name: 'distance',
-            min: 10,
-            max: 50,
+            min: 15,
+            max: 35,
             val: 25
         }, {
             cat: 'eye',
             name: 'width',
-            min: 5,
-            max: 30,
+            min: 10,
+            max: 20,
             val: 15
         }, {
             cat: 'eye',
             name: 'height',
-            min: 1,
-            max: 20,
+            min: 5,
+            max: 12,
             val: 8
         }, {
             cat: 'eye',
@@ -96,8 +128,8 @@ export default class CharacterEditor extends Component {
         }, {
             cat: 'mouth',
             name: 'width',
-            min: 5,
-            max: 30,
+            min: 10,
+            max: 25,
             val: 15
         }, {
             cat: 'mouth',
@@ -120,15 +152,15 @@ export default class CharacterEditor extends Component {
         }, {
             cat: 'nose',
             name: 'width',
-            min: 5,
+            min: 15,
             max: 50,
-            val: 20
+            val: 30
         }, {
             cat: 'nose',
             name: 'height',
-            min: 5,
+            min: 15,
             max: 50,
-            val: 20
+            val: 35
         }];
 
         this.buildSVG = this.buildSVG.bind(this);
@@ -136,6 +168,29 @@ export default class CharacterEditor extends Component {
 
     componentDidMount() {
         this.buildSVG();
+        
+        this.startBodyAnimation();
+    }
+
+    startBodyAnimation() {
+        // Arms
+        SVG.get('right-arm').animate(500).scale(4, 4.9, 0, 0).loop(true, true);
+        SVG.get('left-arm').animate(500).delay(500).scale(4, 4.9, 0, 0).loop(true, true);
+
+        // Legs
+        SVG.get('left-leg').animate(500).scale(3.5, 3.9, 0, 0).loop(true, true);
+        SVG.get('right-leg').animate(500).delay(500).scale(3.5, 3.9, 0, 0).loop(true, true);
+
+        // Body Shaking
+        SVG.get('character-head').animate(500).dmove(0, 5).loop(true, true);
+    }
+
+    startBlinkAnimation() {
+
+    }
+
+    stopBodyAnimation() {
+
     }
 
     initProps() {
@@ -155,17 +210,26 @@ export default class CharacterEditor extends Component {
     }
 
     buildSVG() {
-        var right = 60 + Number(this.state.head.width);
-        var left = 40 - Number(this.state.head.width);
-        var top = 60 - Number(this.state.head.height);
-        var bottom = 60 + Number(this.state.head.height);
+        var right = 60 + this.state.head.width;
+        var left = 40 - this.state.head.width;
+        var top = 60 - this.state.head.height;
+        var bottom = 60 + this.state.head.height;
 
-        var s = 20;
+        var s = this.state.head.roundnessTop;
+        var t = this.state.head.roundnessBottom;
 
-        var pathStr = `
+        /*var pathStr = `
         M ${right} 50 
         C ${right} ${right - s} ${right - s} ${bottom} 50 ${bottom}
           ${left + s} ${bottom} ${left} ${right - s} ${left} 50 
+          ${left} ${left + s} ${left + s} ${top} 50 ${top}
+          ${right - s} ${top} ${right} ${left + s} ${right} 50 Z
+        `;*/
+
+        var pathStr = `
+        M ${right} 50 
+        C ${right} ${right - t} ${right - t} ${bottom} 50 ${bottom}
+          ${left + t} ${bottom} ${left} ${right - t} ${left} 50 
           ${left} ${left + s} ${left + s} ${top} 50 ${top}
           ${right - s} ${top} ${right} ${left + s} ${right} 50 Z
         `;
@@ -223,22 +287,41 @@ export default class CharacterEditor extends Component {
                         </defs>
 
                         <g id="character-outer" transform={`scale(${this.state.zoom} ${this.state.zoom})`}>
-                            <Neck neckProps={this.state.neck} headBounds={this.state.headBounds} />
 
-                            <path id="head-main" d={this.state.svg} style={{fill: this.state.body.skinColor}} />
+                            <g id="character-head">
+                                <Neck neckProps={this.state.neck} headBounds={this.state.headBounds} />
 
-                            <Eyes eyeProps={this.state.eye} bodyProps={this.state.body} headBounds={this.state.headBounds} />
-                            <Eyebrows eyeProps={this.state.eye} headBounds={this.state.headBounds} />
+                                <path id="head-main" d={this.state.svg} style={{fill: this.state.body.skinColor}} />
 
-                            <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
-                            <Mouth mouthProps={this.state.mouth} headBounds={this.state.headBounds} />
-                            <Nose noseProps={this.state.nose} bodyProps={this.state.body} headBounds={this.state.headBounds} />
+                                <Eyes eyeProps={this.state.eye} bodyProps={this.state.body} headBounds={this.state.headBounds} />
+                                <Eyebrows eyeProps={this.state.eye} headBounds={this.state.headBounds} />
 
-                            <Hair headBounds={this.state.headBounds} />
+                                <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
+                                <Mouth mouthProps={this.state.mouth} headBounds={this.state.headBounds} />
+                                <Nose noseProps={this.state.nose} bodyProps={this.state.body} headBounds={this.state.headBounds} />
 
+                                <Hair headBounds={this.state.headBounds} />
+                            </g>
+
+                            <g id="left-leg" transform={`translate(-10 380) scale(3.5 3.5)`}>
+                                <Leg elemId="left-leg-inner" bodyProps={this.state.body}  />
+                            </g>
+                            <g id="right-leg" transform={`translate(100 380) scale(-3.5 3.5)`}>
+                                <Leg elemId="right-leg-inner" bodyProps={this.state.body}  />
+                            </g>
+                            
+
+                        
                             <Torso bodyProps={this.state.body} />
-                            <Arm id="left-arm" bodyProps={this.state.body} transform={`translate(-40 180) scale(4 4)`} />
-                            <Arm id="right-arm" bodyProps={this.state.body} transform={`translate(120 180) scale(-4 4)`} />
+
+                            <g id="right-arm" transform={`translate(120 185) scale(-4 4)`}>
+                                <Arm id="right-arm-inner" bodyProps={this.state.body} />
+                            </g>
+
+                            <g id="left-arm" transform={`translate(-40 185) scale(4 4)`}>
+                                <Arm id="left-arm-inner" bodyProps={this.state.body} />
+                            </g>
+
                         </g>
                     </svg>
                 </div>
@@ -279,7 +362,7 @@ class PropertySlider extends Component {
         this.setState({
             value: ev.target.value
         });
-        this.props.change(this.props.prop, ev.target.value);
+        this.props.change(this.props.prop, Number(ev.target.value));
     }
 
     render() {

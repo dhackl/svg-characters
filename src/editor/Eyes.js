@@ -82,7 +82,7 @@ export default class Eyes extends Component {
         );
         
         return (
-            <g id="eyes-group" transform={`translate(${this.props.headBounds.width / 3} 40)`}>
+            <g id="eyes-group" transform={`translate(50 40)`}>
                 <g id="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}

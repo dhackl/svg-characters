@@ -33,11 +33,11 @@ export default class Eyebrows extends Component {
         let scale = 4.5;
 
         return (
-            <g id="eyebrow-group" transform={`translate(${this.props.headBounds.width / 3} 25)`}>
-                <g id="left-brow" transform={`translate(${-this.props.eyeProps.distance - 20} 0) scale(${scale} ${scale})`} >
+            <g id="eyebrow-group" transform={`translate(50 25)`}>
+                <g id="left-brow" transform={`translate(${-this.props.eyeProps.distance - 25} 0) scale(${scale} ${scale})`} >
                     <path d={d} style={{fill: color}} />
                 </g>
-                <g id="right-brow" transform={`translate(${Number(this.props.eyeProps.distance) + 20} 0) scale(-${scale} ${scale})`}>
+                <g id="right-brow" transform={`translate(${Number(this.props.eyeProps.distance) + 25} 0) scale(-${scale} ${scale})`}>
                     <path d={d} style={{fill: color}} />
                 </g>                
             </g>

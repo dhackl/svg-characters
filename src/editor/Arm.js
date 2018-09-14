@@ -64,7 +64,7 @@ class UpperArm extends Component {
 
         return (
             <g id="upper-arm-group" transform={`rotate(20 5 5)`}>
-                <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12)`} />
+                <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12) scale(1.2 1.2)`} />
                 <path d={dShoulder} style={{fill: '#aa3311'}} transform={`translate(10 7) scale(1.2 1.2)`} />
                 <LowerArm bodyProps={this.props.bodyProps} />
             </g>

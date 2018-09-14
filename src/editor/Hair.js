@@ -1,27 +1,61 @@
 import React, { Component } from 'react';
+import SVG from 'svg.js';
 import ColorUtils from './../util/ColorUtils';
 import Point from '../util/Point';
 
+import hairBald01 from '../resources/hair/bald01.svg';
+import hairShort01 from '../resources/hair/short01.svg';
+import hairShort02 from '../resources/hair/short02.svg';
+
 export default class Hair extends Component {
+
+    static STYLE_BALD = 'bald';
+    static hairStyles = new Map();
 
     constructor(props) {
         super(props);
 
         this.state = {
-            hairCreated: false,
             hairPath: ''
         };
+
+        Hair.hairStyles.set("bald", hairShort01);
+        Hair.hairStyles.set("bald01", hairBald01);
+        Hair.hairStyles.set("short01", hairShort01);
+        Hair.hairStyles.set("short02", hairShort02);
+
     }
 
-    componentDidMount() {
-        this.buildSVG();
+    getHairPath() {
+        // If bald -> return empty path
+        if (this.props.hairProps.hairStyle === Hair.STYLE_BALD) {
+            this.setState({
+                hairPath: ''
+            });
+            return;
+        }
+
+        // Load external SVG for hair data
+        let hairStyle = Hair.hairStyles.get(this.props.hairProps.hairStyle);
+        fetch(hairStyle)
+        .then(r => r.text())
+        .then(text => {
+            //let svg = SVG(text);
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(text, "image/svg+xml");
+            let path = doc.getElementById('hair-path').getAttribute('d');
+            
+            this.setState({
+                hairPath: path
+            });
+        });
     }
 
     componentWillReceiveProps(nextProps) {
-        //this.buildSVG();
+        this.getHairPath();
     }
 
-    buildSVG() {
+    buildRandomHair() {
         let top = this.props.headBounds.top();
         let left = this.props.headBounds.left();
         let right = this.props.headBounds.right();
@@ -63,8 +97,8 @@ export default class Hair extends Component {
         let d = this.state.hairPath;
 
         return (
-            <g id="hair-group" transform={`translate(${this.props.headBounds.left()} ${this.props.headBounds.top() - 40})`}  >
-                <path d={d} style={{fill: '#883300'}} />
+            <g id="hair-group" transform={`translate(-40 -65) scale(4.6 4.6)`}  >
+                <path d={d} style={{fill: this.props.hairProps.hairColor}} />
             </g>
         );
     }

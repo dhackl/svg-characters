@@ -38,7 +38,7 @@ export default class Mouth extends Component {
         let height = this.props.mouthProps.height * 0.1;
 
         return (
-            <g id="mouth-group" transform={`translate(${20 + (1 - width) * 20} ${this.props.headBounds.bottom() - 40}) scale(${width} ${height})`}>
+            <g id="mouth-group" transform={`translate(${25 + (1 - width) * 20} ${this.props.headBounds.bottom() - 40}) scale(${width} ${height})`}>
                 <path d={d} style={{fill: 'url(#mouth-gradient)'}} />
                 <path d={dLipCrack} style={{fill: '#944527'}} />
             </g>

@@ -21,11 +21,11 @@ export default class Neck extends Component {
     render() {
         let d = this.buildSVG();
 
-        let width = this.props.neckProps.width * 0.1;
+        let width = this.props.neckProps.width * 0.2;
         let height = this.props.neckProps.height * 0.1;
         
         return (
-            <g id="neck-group" transform={`translate(${80 + (1 - width) * 5} ${this.props.headBounds.bottom() - 10}) scale(${width} ${height})`}>
+            <g id="neck-group" transform={`translate(${45 + (1 - width) * 10} ${this.props.headBounds.bottom() - 10}) scale(${-width} ${height})`}>
                 <path d={d} style={{fill: 'url(#neck-gradient)'}} />
             </g>
         );

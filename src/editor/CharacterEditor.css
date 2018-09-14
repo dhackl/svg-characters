@@ -6,11 +6,12 @@
 #character-preview {
     width: 50%;
     float: left;
+    text-align: left;
 }
 #character-preview svg {
     padding: 50px 250px;
     height: 2000px;
-    width: 100px;
+    width: 500px;
 }
 
 .prop-slider {
@@ -85,6 +86,15 @@
     margin: 20px 5px;
     padding: 5px;
     color: #555;
+}
+
+.dropdown {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
 }
 
 /*#left-leg {

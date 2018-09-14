@@ -31,8 +31,12 @@ export default class CharacterEditor extends Component {
             head: {
                 width: 60,
                 height: 90,
-                roundnessTop: 20,
+                roundnessTop: 15,
                 roundnessBottom: 20
+            },
+            hair: {
+                hairStyle: 'short01',
+                hairColor: '#aa5511'
             },
             eye: {
                 distance: 25,
@@ -44,11 +48,11 @@ export default class CharacterEditor extends Component {
                 
             },
             mouth: {
-                width: 15,
+                width: 18,
                 height: 8
             },
             neck: {
-                width: 30,
+                width: 15,
                 height: 30
             },
             nose: {
@@ -92,7 +96,7 @@ export default class CharacterEditor extends Component {
         }, {
             cat: 'head',
             name: 'roundnessTop',
-            min: 5,
+            min: 1,
             max: 40,
             val: 20,
         }, {
@@ -101,6 +105,16 @@ export default class CharacterEditor extends Component {
             min: 5,
             max: 40,
             val: 20,
+        }, {
+            cat: 'hair',
+            name: 'hairStyle',
+            type: 'string',
+            val: 'short01'
+        }, {
+            cat: 'hair',
+            name: 'hairColor',
+            type: 'color',
+            val: '#aa5511'
         }, {
             cat: 'eye',
             name: 'distance',
@@ -130,7 +144,7 @@ export default class CharacterEditor extends Component {
             name: 'width',
             min: 10,
             max: 25,
-            val: 15
+            val: 18
         }, {
             cat: 'mouth',
             name: 'height',
@@ -141,8 +155,8 @@ export default class CharacterEditor extends Component {
             cat: 'neck',
             name: 'width',
             min: 5,
-            max: 50,
-            val: 30
+            max: 30,
+            val: 15
         }, {
             cat: 'neck',
             name: 'height',
@@ -169,7 +183,34 @@ export default class CharacterEditor extends Component {
     componentDidMount() {
         this.buildSVG();
         
+        //this.transformSidePose();
+
+        // Animate character
         this.startBodyAnimation();
+
+        // Generate side-view of character
+        // #CLONE
+        //let clone = SVG.get('character-outer').clone();
+        //clone.dmove(200, 0);
+        // #USE
+        //let draw = SVG.adopt(document.getElementById('character-svg'));
+        //let clone = draw.use(SVG.get('character-outer')).dmove(400, 0);
+        
+    }
+
+    transformSidePose() {
+        // Face
+        SVG.get('left-eye').dmove(50, 0);
+        SVG.get('left-brow').dmove(50, 0);
+        SVG.get('right-eye').hide();
+        SVG.get('right-brow').hide();
+
+        SVG.get('right-ear').hide();
+        SVG.get('nose-group').dmove(70, 0);
+
+        // Arms
+        SVG.get('left-arm').dmove(20, 0);
+        SVG.get('right-arm').dmove(20, 0).flip('x').back();
     }
 
     startBodyAnimation() {
@@ -261,6 +302,8 @@ export default class CharacterEditor extends Component {
                     group.values.map(prop => {
                         if (prop.type === 'color')
                             return <PropertyColorPicker prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
+                        else if (prop.type === 'string')
+                            return <PropertyDropdown prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
                         else 
                             return <PropertySlider prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)} />
                     })
@@ -274,7 +317,7 @@ export default class CharacterEditor extends Component {
                     {elements}
                 </div>
                 <div id="character-preview">
-                    <svg>
+                    <svg id="character-svg">
                         <defs>
                             <linearGradient id="mouth-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0" stopColor="#e69c6b" />
@@ -286,7 +329,7 @@ export default class CharacterEditor extends Component {
                             </linearGradient>
                         </defs>
 
-                        <g id="character-outer" transform={`scale(${this.state.zoom} ${this.state.zoom})`}>
+                        <g id="character-outer" transform={`translate(0 100) scale(${this.state.zoom} ${this.state.zoom})`}>
 
                             <g id="character-head">
                                 <Neck neckProps={this.state.neck} headBounds={this.state.headBounds} />
@@ -296,11 +339,12 @@ export default class CharacterEditor extends Component {
                                 <Eyes eyeProps={this.state.eye} bodyProps={this.state.body} headBounds={this.state.headBounds} />
                                 <Eyebrows eyeProps={this.state.eye} headBounds={this.state.headBounds} />
 
-                                <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
                                 <Mouth mouthProps={this.state.mouth} headBounds={this.state.headBounds} />
                                 <Nose noseProps={this.state.nose} bodyProps={this.state.body} headBounds={this.state.headBounds} />
 
-                                <Hair headBounds={this.state.headBounds} />
+                                <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
+
+                                <Hair hairProps={this.state.hair} headBounds={this.state.headBounds} />
                             </g>
 
                             <g id="left-leg" transform={`translate(-10 380) scale(3.5 3.5)`}>
@@ -401,6 +445,41 @@ class PropertyColorPicker extends Component {
                 <span className="prop-label">{this.props.prop.name}</span>
                 <input type="color" value={this.state.color} onChange={this.valueChanged} />
                 <input type="text" className="prop-value" value={this.state.color} disabled />
+            </div>
+        );
+    }
+}
+
+class PropertyDropdown extends Component {
+    
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: this.props.prop.val
+        };
+
+        this.valueChanged = this.valueChanged.bind(this);
+    }
+
+    valueChanged(ev) {
+        this.setState({
+            value: ev.target.value
+        });
+        this.props.change(this.props.prop, ev.target.value);
+    }
+
+    render() {
+        const styles = [];
+        Hair.hairStyles.forEach((val, key) => 
+            styles.push(<option key={'op-' + key} value={key}>{key}</option>)
+        );
+        return (
+            <div className="prop-dropdown">
+                <span className="prop-label">{this.props.prop.name}</span>
+                <select className="dropdown" onChange={this.valueChanged}>
+                    {styles}
+                </select>
             </div>
         );
     }

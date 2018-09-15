@@ -15,7 +15,7 @@ import Hair from './Hair';
 import Torso from './Torso';
 import Arm from './Arm';
 import Leg from './Leg';
-import ClothesTop from './ClothesTop';
+import Clothes from './Clothes';
 
 export default class CharacterEditor extends Component {
 
@@ -63,9 +63,13 @@ export default class CharacterEditor extends Component {
             clothes: {
                 styleTop: 'tshirt',
                 colorTop: '#ab2710',
+                styleLegs: 'jeans',
+                colorLegs: '#20243c',
                 clothUpperArm: '',
                 clothLowerArm: '',
-                clothTorso: ''
+                clothTorso: '',
+                clothUpperLeg: '',
+                clothLowerLeg: ''
             },
             headBounds: new Rectangle(),
             svg: '',
@@ -189,12 +193,23 @@ export default class CharacterEditor extends Component {
             name: 'styleTop',
             type: 'string',
             val: 'tshirt',
-            items: ClothesTop.clothes
+            items: Clothes.clothesTop
         }, {
             cat: 'clothes',
             name: 'colorTop',
             type: 'color',
             val: '#ab2710'
+        }, {
+            cat: 'clothes',
+            name: 'styleLegs',
+            type: 'string',
+            val: 'jeans',
+            items: Clothes.clothesLegs
+        }, {
+            cat: 'clothes',
+            name: 'colorLegs',
+            type: 'color',
+            val: '#20243c'
         }];
 
         this.buildSVG = this.buildSVG.bind(this);
@@ -208,8 +223,9 @@ export default class CharacterEditor extends Component {
         // Animate character
         this.startBodyAnimation();
 
-        ClothesTop.init();
-        this.buildClothes();
+        Clothes.init();
+        this.buildClothesTop();
+        this.buildClothesLegs();
 
         // Generate side-view of character
         // #CLONE
@@ -242,8 +258,8 @@ export default class CharacterEditor extends Component {
         SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true);
 
         // Legs
-        SVG.get('left-leg').animate(500).scale(3.5, 3.9, 0, 0).loop(true, true);
-        SVG.get('right-leg').animate(500).delay(500).scale(3.5, 3.9, 0, 0).loop(true, true);
+        SVG.get('left-leg').animate(500).scale(1, 1.2, 0, 0).loop(true, true);
+        SVG.get('right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true);
 
         // Body Shaking
         SVG.get('character-head').animate(500).dmove(0, 5).loop(true, true);
@@ -273,7 +289,10 @@ export default class CharacterEditor extends Component {
         this.buildSVG();
 
         if (prop.cat === 'clothes') {
-            this.buildClothes();
+            if (prop.name.indexOf('Top') >= 0)
+                this.buildClothesTop();
+            else
+                this.buildClothesLegs();
         }
     }
 
@@ -308,9 +327,9 @@ export default class CharacterEditor extends Component {
         });
     }
 
-    buildClothes() {
+    buildClothesTop() {
         // If naked -> return empty path
-        if (this.state.clothes.styleTop === ClothesTop.STYLE_NAKED) {
+        if (this.state.clothes.styleTop === Clothes.STYLE_NAKED) {
             let clothes = this.state.clothes;
             clothes.clothUpperArm = '';
             clothes.clothLowerArm = '';
@@ -322,12 +341,12 @@ export default class CharacterEditor extends Component {
         }
 
         // Otherwise -> load clothes
-        ClothesTop.getClothesPath(this.state.clothes.styleTop).then(text => {
+        Clothes.getClothesTop(this.state.clothes.styleTop).then(text => {
             var parser = new DOMParser();
 
             // Substitute colors
-            text = text.replace(new RegExp(ClothesTop.COLOR_PRIMARY, 'g'), this.state.clothes.colorTop);
-            text = text.replace(new RegExp(ClothesTop.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorTop, '#000000', 0.3));
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), this.state.clothes.colorTop);
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorTop, '#000000', 0.3));
 
             var doc = parser.parseFromString(text, "image/svg+xml");
             let upperArm = doc.getElementById('upper-arm');
@@ -338,6 +357,41 @@ export default class CharacterEditor extends Component {
             clothes.clothUpperArm = upperArm != null ? upperArm.outerHTML : '';
             clothes.clothLowerArm = lowerArm != null ? lowerArm.outerHTML : '';
             clothes.clothTorso = torso != null ? torso.outerHTML : '';
+            
+            this.setState({
+                clothes: clothes
+            });
+        });
+
+    }
+
+    buildClothesLegs() {
+        // If naked -> return empty path
+        if (this.state.clothes.styleLegs === Clothes.STYLE_NAKED) {
+            let clothes = this.state.clothes;
+            clothes.clothUpperLeg = '';
+            clothes.clothLowerLeg = '';
+            this.setState({
+                clothes: clothes
+            });
+            return;
+        }
+
+        // Otherwise -> load clothes
+        Clothes.getClothesLegs(this.state.clothes.styleLegs).then(text => {
+            var parser = new DOMParser();
+
+            // Substitute colors
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), this.state.clothes.colorLegs);
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorLegs, '#000000', 0.3));
+
+            var doc = parser.parseFromString(text, "image/svg+xml");
+            let upperLeg = doc.getElementById('upper-leg');
+            let lowerLeg = doc.getElementById('lower-leg');
+            
+            let clothes = this.state.clothes;
+            clothes.clothUpperLeg = upperLeg != null ? upperLeg.outerHTML : '';
+            clothes.clothLowerLeg = lowerLeg != null ? lowerLeg.outerHTML : '';
             
             this.setState({
                 clothes: clothes
@@ -416,11 +470,15 @@ export default class CharacterEditor extends Component {
                                 <Hair hairProps={this.state.hair} headBounds={this.state.headBounds} />
                             </g>
 
-                            <g id="left-leg" transform={`translate(-10 380) scale(3.5 3.5)`}>
+                            <g id="left-leg" transform={`translate(-10 380) scale(1 1)`}>
                                 <Leg elemId="left-leg-inner" bodyProps={this.state.body}  />
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
                             </g>
-                            <g id="right-leg" transform={`translate(100 380) scale(-3.5 3.5)`}>
+                            <g id="right-leg" transform={`translate(100 380) scale(-1 1)`}>
                                 <Leg elemId="right-leg-inner" bodyProps={this.state.body}  />
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
                             </g>
                             
 
@@ -428,13 +486,13 @@ export default class CharacterEditor extends Component {
                             <Torso bodyProps={this.state.body} />
                             <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
 
-                            <g id="right-arm" transform={`translate(120 185) scale(-1 1)`}>
+                            <g id="right-arm" transform={`translate(130 195) scale(-1 1)`}>
                                 <Arm id="right-arm-inner" bodyProps={this.state.body} />
                                 <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
                                 <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
                             </g>
 
-                            <g id="left-arm" transform={`translate(-30 185) scale(1 1)`}>
+                            <g id="left-arm" transform={`translate(-40 195) scale(1 1)`}>
                                 <Arm id="left-arm-inner" bodyProps={this.state.body} />
                                 <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
                                 <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>

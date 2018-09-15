@@ -52,8 +52,8 @@ class UpperLeg extends Component {
         //let height = this.props.noseProps.height * 0.1;
         
         return (
-            <g id="upper-leg-group">
-                <path d={dLeg} style={{fill: '#20243c'}} transform={`translate(0 0)`} />
+            <g id="upper-leg-group" transform="scale(3.5 3.5)">
+                <path d={dLeg} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 0)`} />
                 <LowerLeg bodyProps={this.props.bodyProps} />
             </g>
         );
@@ -90,7 +90,7 @@ class LowerLeg extends Component {
         return (
             <g id="lower-leg-group" transform={`translate(10 45) rotate(0 0 0)`}>
                 <Foot bodyProps={this.props.bodyProps} />
-                <path d={dLeg} style={{fill: '#20243c'}} />
+                <path d={dLeg} style={{fill: this.props.bodyProps.skinColor}} />
             </g>
         );
     }

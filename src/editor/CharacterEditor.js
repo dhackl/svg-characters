@@ -15,6 +15,7 @@ import Hair from './Hair';
 import Torso from './Torso';
 import Arm from './Arm';
 import Leg from './Leg';
+import ClothesTop from './ClothesTop';
 
 export default class CharacterEditor extends Component {
 
@@ -58,6 +59,13 @@ export default class CharacterEditor extends Component {
             nose: {
                 width: 30,
                 height: 35
+            },
+            clothes: {
+                styleTop: 'tshirt',
+                colorTop: '#ab2710',
+                clothUpperArm: '',
+                clothLowerArm: '',
+                clothTorso: ''
             },
             headBounds: new Rectangle(),
             svg: '',
@@ -109,7 +117,8 @@ export default class CharacterEditor extends Component {
             cat: 'hair',
             name: 'hairStyle',
             type: 'string',
-            val: 'short01'
+            val: 'short01',
+            items: Hair.hairStyles
         }, {
             cat: 'hair',
             name: 'hairColor',
@@ -175,6 +184,17 @@ export default class CharacterEditor extends Component {
             min: 15,
             max: 50,
             val: 35
+        }, {
+            cat: 'clothes',
+            name: 'styleTop',
+            type: 'string',
+            val: 'tshirt',
+            items: ClothesTop.clothes
+        }, {
+            cat: 'clothes',
+            name: 'colorTop',
+            type: 'color',
+            val: '#ab2710'
         }];
 
         this.buildSVG = this.buildSVG.bind(this);
@@ -187,6 +207,9 @@ export default class CharacterEditor extends Component {
 
         // Animate character
         this.startBodyAnimation();
+
+        ClothesTop.init();
+        this.buildClothes();
 
         // Generate side-view of character
         // #CLONE
@@ -215,8 +238,8 @@ export default class CharacterEditor extends Component {
 
     startBodyAnimation() {
         // Arms
-        SVG.get('right-arm').animate(500).scale(4, 4.9, 0, 0).loop(true, true);
-        SVG.get('left-arm').animate(500).delay(500).scale(4, 4.9, 0, 0).loop(true, true);
+        SVG.get('right-arm').animate(500).scale(1, 1.2, 0, 0).loop(true, true);
+        SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true);
 
         // Legs
         SVG.get('left-leg').animate(500).scale(3.5, 3.9, 0, 0).loop(true, true);
@@ -248,6 +271,10 @@ export default class CharacterEditor extends Component {
         state[bodyPart] = bodyPart;
         this.setState(state);
         this.buildSVG();
+
+        if (prop.cat === 'clothes') {
+            this.buildClothes();
+        }
     }
 
     buildSVG() {
@@ -281,6 +308,43 @@ export default class CharacterEditor extends Component {
         });
     }
 
+    buildClothes() {
+        // If naked -> return empty path
+        if (this.state.clothes.styleTop === ClothesTop.STYLE_NAKED) {
+            let clothes = this.state.clothes;
+            clothes.clothUpperArm = '';
+            clothes.clothLowerArm = '';
+            clothes.clothTorso = '';
+            this.setState({
+                clothes: clothes
+            });
+            return;
+        }
+
+        // Otherwise -> load clothes
+        ClothesTop.getClothesPath(this.state.clothes.styleTop).then(text => {
+            var parser = new DOMParser();
+
+            // Substitute colors
+            text = text.replace(new RegExp(ClothesTop.COLOR_PRIMARY, 'g'), this.state.clothes.colorTop);
+            text = text.replace(new RegExp(ClothesTop.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorTop, '#000000', 0.3));
+
+            var doc = parser.parseFromString(text, "image/svg+xml");
+            let upperArm = doc.getElementById('upper-arm');
+            let lowerArm = doc.getElementById('lower-arm');
+            let torso = doc.getElementById('torso');
+            
+            let clothes = this.state.clothes;
+            clothes.clothUpperArm = upperArm != null ? upperArm.outerHTML : '';
+            clothes.clothLowerArm = lowerArm != null ? lowerArm.outerHTML : '';
+            clothes.clothTorso = torso != null ? torso.outerHTML : '';
+            
+            this.setState({
+                clothes: clothes
+            });
+        });
+    }
+
     groupByArray(xs, key) { 
         return xs.reduce(function (rv, x) { 
             let v = key instanceof Function ? key(x) : x[key]; 
@@ -303,7 +367,7 @@ export default class CharacterEditor extends Component {
                         if (prop.type === 'color')
                             return <PropertyColorPicker prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
                         else if (prop.type === 'string')
-                            return <PropertyDropdown prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
+                            return <PropertyDropdown prop={prop} key={prop.cat + prop.name} items={prop.items} change={this.setProp.bind(this)}/>
                         else 
                             return <PropertySlider prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)} />
                     })
@@ -326,6 +390,11 @@ export default class CharacterEditor extends Component {
                             <linearGradient id="neck-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0" stopColor={ColorUtils.blend(this.state.body.skinColor, '#552200', 0.2)} />
                                 <stop offset="1" stopColor={this.state.body.skinColor} />                                
+                            </linearGradient>
+                            <linearGradient id="linear-01">
+                                <stop offset="0" stopColor={this.state.clothes.colorTop} />
+                                <stop offset="0.5" stopColor={ColorUtils.shade(this.state.clothes.colorTop, 0.5)} />
+                                <stop offset="1" stopColor={this.state.clothes.colorTop} />
                             </linearGradient>
                         </defs>
 
@@ -357,13 +426,18 @@ export default class CharacterEditor extends Component {
 
                         
                             <Torso bodyProps={this.state.body} />
+                            <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
 
-                            <g id="right-arm" transform={`translate(120 185) scale(-4 4)`}>
+                            <g id="right-arm" transform={`translate(120 185) scale(-1 1)`}>
                                 <Arm id="right-arm-inner" bodyProps={this.state.body} />
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
                             </g>
 
-                            <g id="left-arm" transform={`translate(-40 185) scale(4 4)`}>
+                            <g id="left-arm" transform={`translate(-30 185) scale(1 1)`}>
                                 <Arm id="left-arm-inner" bodyProps={this.state.body} />
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
+                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
                             </g>
 
                         </g>
@@ -470,15 +544,15 @@ class PropertyDropdown extends Component {
     }
 
     render() {
-        const styles = [];
-        Hair.hairStyles.forEach((val, key) => 
-            styles.push(<option key={'op-' + key} value={key}>{key}</option>)
+        const items = [];
+        this.props.items.forEach((val, key) => 
+            items.push(<option key={'op-' + key} value={key}>{key}</option>)
         );
         return (
             <div className="prop-dropdown">
                 <span className="prop-label">{this.props.prop.name}</span>
                 <select className="dropdown" onChange={this.valueChanged}>
-                    {styles}
+                    {items}
                 </select>
             </div>
         );

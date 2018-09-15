@@ -63,9 +63,9 @@ class UpperArm extends Component {
         let offsetX = this.props.bodyProps.direction == 1 ? 10 : 0;
 
         return (
-            <g id="upper-arm-group" transform={`rotate(20 5 5)`}>
-                <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12) scale(1.2 1.2)`} />
-                <path d={dShoulder} style={{fill: '#aa3311'}} transform={`translate(10 7) scale(1.2 1.2)`} />
+            <g id="upper-arm-group" transform={`scale(4.3 4.3) rotate(20 5 5)`}>
+                <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12) scale(1 1)`} />
+                <path d={dShoulder} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(10 7) scale(1 1)`} />
                 <LowerArm bodyProps={this.props.bodyProps} />
             </g>
         );
@@ -79,11 +79,14 @@ class LowerArm extends Component {
     }
 
     buildArm() {
-        var pathStr = `
+        /*var pathStr = `
         m 0 0 
         h 5.70 
         v 15.60 
         h -5.70 z
+        `;*/
+        var pathStr = `
+        m 0,0 c 1.88116,-6.64603 7.73478,-0.4098 6.36121,-1.96896 2.26238,2.36971 2.51042,15.32313 4.81068,22.758483 l -4.64925,1.599031 c -5.37348,-17.009043 -7.11155,-18.558942 -6.52264,-22.388554 z
         `;
 
         return pathStr;
@@ -95,7 +98,7 @@ class LowerArm extends Component {
         //let height = this.props.noseProps.height * 0.1;
         
         return (
-            <g id="lower-arm-group" transform={`translate(0 30) rotate(-40 0 0)`}>
+            <g id="lower-arm-group" transform={`translate(0 30) rotate(-20 0 0)`}>
                 <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} />
                 <Hand bodyProps={this.props.bodyProps} />
             </g>
@@ -148,7 +151,7 @@ class Hand extends Component {
         //let height = this.props.noseProps.height * 0.1;
         
         return (
-            <g id="hand-group" transform={`translate(0 15) scale(0.3 0.3)`}>
+            <g id="hand-group" transform={`translate(5 15) scale(0.3 0.3)`}>
                 <path d={dHand} style={{fill: this.props.bodyProps.skinColor}} />
                 <path d={dThumb} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(15 2)`} />
             </g>

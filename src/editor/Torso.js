@@ -33,7 +33,7 @@ export default class Torso extends Component {
         
         return (
             <g id="torso-group" transform={`translate(-18 180) scale(4 4)`}>
-                <path d={d} style={{fill: '#aa3311'}} transform={`translate(0 0)`} />
+                <path d={d} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 0)`} />
             </g>
         );
     }

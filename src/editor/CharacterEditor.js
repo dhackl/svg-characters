@@ -73,7 +73,8 @@ export default class CharacterEditor extends Component {
             },
             headBounds: new Rectangle(),
             svg: '',
-            zoom: 1.5
+            zoom: 1.5,
+            sideView: false
         };
 
         this.characterProperties = [{
@@ -212,7 +213,10 @@ export default class CharacterEditor extends Component {
             val: '#20243c'
         }];
 
+        this.bodyAnimations = [];
+
         this.buildSVG = this.buildSVG.bind(this);
+        this.toggleSideView = this.toggleSideView.bind(this);
     }
 
     componentDidMount() {
@@ -221,7 +225,8 @@ export default class CharacterEditor extends Component {
         //this.transformSidePose();
 
         // Animate character
-        this.startBodyAnimation();
+        this.createBodyAnimations();
+        this.stopBodyAnimation();
 
         Clothes.init();
         this.buildClothesTop();
@@ -234,43 +239,94 @@ export default class CharacterEditor extends Component {
         // #USE
         //let draw = SVG.adopt(document.getElementById('character-svg'));
         //let clone = draw.use(SVG.get('character-outer')).dmove(400, 0);
+     
+        SVG.get('character-outer').dmove(100, 0);
         
     }
 
     transformSidePose() {
-        // Face
-        SVG.get('left-eye').dmove(50, 0);
-        SVG.get('left-brow').dmove(50, 0);
-        SVG.get('right-eye').hide();
-        SVG.get('right-brow').hide();
-
-        SVG.get('right-ear').hide();
-        SVG.get('nose-group').dmove(70, 0);
-
-        // Arms
-        SVG.get('left-arm').dmove(20, 0);
-        SVG.get('right-arm').dmove(20, 0).flip('x').back();
+        
     }
 
-    startBodyAnimation() {
+    toggleSideView() {
+        this.setState({
+            sideView: !this.state.sideView
+        }, () => {
+            this.stopBodyAnimation();
+            if (this.state.sideView) {
+                // Face
+                SVG.get('left-eye').dmove(30, 0);
+                SVG.get('left-brow').dmove(6, 0);
+                SVG.get('right-eye').dmove(-30, 0).scale(0.8, 1);
+                SVG.get('right-brow').dmove(-6, 0);
+
+                SVG.get('right-ear').hide();
+
+                SVG.get('nose-group').dmove(35, 0);
+                SVG.get('mouth-group').dmove(35, 0);
+
+                // Arms
+                //SVG.get('left-arm').dmove(20, 0);
+                SVG.get('right-arm').dmove(10, 0).scale(-1, 1).rotate(-20).back();
+
+                //this.state.hair.hairStyle += '_side';
+                var tempState = this.state;
+                tempState.hair.hairStyle += '_side';
+                this.setState(tempState);
+            }
+            else {
+                // Face
+                SVG.get('left-eye').dmove(-30, 0);
+                SVG.get('left-brow').dmove(-6, 0);
+                SVG.get('right-eye').scale(1, 1).dmove(30, 0);
+                SVG.get('right-brow').dmove(6, 0);
+
+                SVG.get('right-ear').show();
+
+                SVG.get('nose-group').dmove(-35, 0);
+                SVG.get('mouth-group').dmove(-35, 0);
+
+                // Arms
+                //SVG.get('left-arm').dmove(20, 0);
+                SVG.get('right-arm').rotate(20).scale(-1, 1).dmove(-10, 0).front();
+
+                var tempState = this.state;
+                tempState.hair.hairStyle = this.state.hair.hairStyle.substring(0, this.state.hair.hairStyle.length - 5);
+                this.setState(tempState);
+            }
+            this.startBodyAnimation();
+        });
+    }
+
+    createBodyAnimations() {
         // Arms
-        SVG.get('right-arm').animate(500).scale(1, 1.2, 0, 0).loop(true, true);
-        SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true);
+        this.bodyAnimations.push(SVG.get('right-arm').animate(500).scale(1, 1.2, 0, 0));
+        this.bodyAnimations.push(SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0));
 
         // Legs
-        SVG.get('left-leg').animate(500).scale(1, 1.2, 0, 0).loop(true, true);
-        SVG.get('right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true);
+        this.bodyAnimations.push(SVG.get('left-leg').animate(500).scale(1, 1.2, 0, 0));
+        this.bodyAnimations.push(SVG.get('right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0));
 
         // Body Shaking
-        SVG.get('character-head').animate(500).dmove(0, 5).loop(true, true);
+        this.bodyAnimations.push(SVG.get('character-head').animate(500).dmove(0, 5));
     }
 
     startBlinkAnimation() {
 
     }
 
-    stopBodyAnimation() {
+    startBodyAnimation() {
+        this.bodyAnimations.forEach(anim => {
+            
+            anim.play();
+        });
+    }
 
+    stopBodyAnimation() {
+        this.bodyAnimations.forEach(anim => {
+            anim.stop(); 
+            //anim.pause();
+        });
     }
 
     initProps() {
@@ -431,6 +487,9 @@ export default class CharacterEditor extends Component {
 
         return (
             <div id="character-editor">
+                <div id="character-toolbar">
+                    <button className="btn-toolbar" onClick={this.toggleSideView}>Toggle Side View</button>
+                </div>
                 <div id="character-props">
                     {elements}
                 </div>
@@ -613,6 +672,19 @@ class PropertyDropdown extends Component {
                     {items}
                 </select>
             </div>
+        );
+    }
+}
+
+class Toolbar extends Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div></div>
         );
     }
 }

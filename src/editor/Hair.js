@@ -5,6 +5,7 @@ import Point from '../util/Point';
 
 import hairBald01 from '../resources/hair/bald01.svg';
 import hairShort01 from '../resources/hair/short01.svg';
+import hairShort01Side from '../resources/hair/short01_side.svg';
 import hairShort02 from '../resources/hair/short02.svg';
 
 export default class Hair extends Component {
@@ -22,6 +23,7 @@ export default class Hair extends Component {
         Hair.hairStyles.set("bald", hairShort01);
         Hair.hairStyles.set("bald01", hairBald01);
         Hair.hairStyles.set("short01", hairShort01);
+        Hair.hairStyles.set("short01_side", hairShort01Side);
         Hair.hairStyles.set("short02", hairShort02);
 
     }

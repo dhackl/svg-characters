@@ -16,6 +16,9 @@ import Torso from './Torso';
 import Arm from './Arm';
 import Leg from './Leg';
 import Clothes from './Clothes';
+import Character from './Character';
+
+import World from '../world/World';
 
 export default class CharacterEditor extends Component {
 
@@ -213,8 +216,6 @@ export default class CharacterEditor extends Component {
             val: '#20243c'
         }];
 
-        this.bodyAnimations = [];
-
         this.buildSVG = this.buildSVG.bind(this);
         this.toggleSideView = this.toggleSideView.bind(this);
     }
@@ -223,10 +224,6 @@ export default class CharacterEditor extends Component {
         this.buildSVG();
         
         //this.transformSidePose();
-
-        // Animate character
-        this.createBodyAnimations();
-        this.stopBodyAnimation();
 
         Clothes.init();
         this.buildClothesTop();
@@ -252,7 +249,6 @@ export default class CharacterEditor extends Component {
         this.setState({
             sideView: !this.state.sideView
         }, () => {
-            this.stopBodyAnimation();
             if (this.state.sideView) {
                 // Face
                 SVG.get('left-eye').dmove(30, 0);
@@ -269,7 +265,6 @@ export default class CharacterEditor extends Component {
                 //SVG.get('left-arm').dmove(20, 0);
                 SVG.get('right-arm').dmove(10, 0).scale(-1, 1).rotate(-20).back();
 
-                //this.state.hair.hairStyle += '_side';
                 var tempState = this.state;
                 tempState.hair.hairStyle += '_side';
                 this.setState(tempState);
@@ -294,38 +289,6 @@ export default class CharacterEditor extends Component {
                 tempState.hair.hairStyle = this.state.hair.hairStyle.substring(0, this.state.hair.hairStyle.length - 5);
                 this.setState(tempState);
             }
-            this.startBodyAnimation();
-        });
-    }
-
-    createBodyAnimations() {
-        // Arms
-        this.bodyAnimations.push(SVG.get('right-arm').animate(500).scale(1, 1.2, 0, 0));
-        this.bodyAnimations.push(SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0));
-
-        // Legs
-        this.bodyAnimations.push(SVG.get('left-leg').animate(500).scale(1, 1.2, 0, 0));
-        this.bodyAnimations.push(SVG.get('right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0));
-
-        // Body Shaking
-        this.bodyAnimations.push(SVG.get('character-head').animate(500).dmove(0, 5));
-    }
-
-    startBlinkAnimation() {
-
-    }
-
-    startBodyAnimation() {
-        this.bodyAnimations.forEach(anim => {
-            
-            anim.play();
-        });
-    }
-
-    stopBodyAnimation() {
-        this.bodyAnimations.forEach(anim => {
-            anim.stop(); 
-            //anim.pause();
         });
     }
 
@@ -467,6 +430,21 @@ export default class CharacterEditor extends Component {
         }, []); 
     }
 
+    handleKeyDown(ev) {
+        if (ev.key === 'ArrowLeft') {
+            SVG.get('character-outer').dx(-5);
+        }
+        else if (ev.key === 'ArrowRight') {
+            SVG.get('character-outer').dx(5);
+        }
+        else if (ev.key === 'ArrowUp') {
+            SVG.get('character-outer').dy(-5);
+        }
+        else if (ev.key === 'ArrowDown') {
+            SVG.get('character-outer').dy(5);
+        }
+    }
+
     render() {
         let propGroups = this.groupByArray(this.characterProperties, 'cat');
 
@@ -493,71 +471,9 @@ export default class CharacterEditor extends Component {
                 <div id="character-props">
                     {elements}
                 </div>
-                <div id="character-preview">
+                <div id="character-preview" onKeyDown={this.handleKeyDown} tabIndex="0">
                     <svg id="character-svg">
-                        <defs>
-                            <linearGradient id="mouth-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0" stopColor="#e69c6b" />
-                                <stop offset="1" stopColor="#bc5d38" />                                
-                            </linearGradient>
-                            <linearGradient id="neck-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0" stopColor={ColorUtils.blend(this.state.body.skinColor, '#552200', 0.2)} />
-                                <stop offset="1" stopColor={this.state.body.skinColor} />                                
-                            </linearGradient>
-                            <linearGradient id="linear-01">
-                                <stop offset="0" stopColor={this.state.clothes.colorTop} />
-                                <stop offset="0.5" stopColor={ColorUtils.shade(this.state.clothes.colorTop, 0.5)} />
-                                <stop offset="1" stopColor={this.state.clothes.colorTop} />
-                            </linearGradient>
-                        </defs>
-
-                        <g id="character-outer" transform={`translate(0 100) scale(${this.state.zoom} ${this.state.zoom})`}>
-
-                            <g id="character-head">
-                                <Neck neckProps={this.state.neck} headBounds={this.state.headBounds} />
-
-                                <path id="head-main" d={this.state.svg} style={{fill: this.state.body.skinColor}} />
-
-                                <Eyes eyeProps={this.state.eye} bodyProps={this.state.body} headBounds={this.state.headBounds} />
-                                <Eyebrows eyeProps={this.state.eye} headBounds={this.state.headBounds} />
-
-                                <Mouth mouthProps={this.state.mouth} headBounds={this.state.headBounds} />
-                                <Nose noseProps={this.state.nose} bodyProps={this.state.body} headBounds={this.state.headBounds} />
-
-                                <Ears earProps={this.state.ear} bodyProps={this.state.body} headBounds={this.state.headBounds} />
-
-                                <Hair hairProps={this.state.hair} headBounds={this.state.headBounds} />
-                            </g>
-
-                            <g id="left-leg" transform={`translate(-10 380) scale(1 1)`}>
-                                <Leg elemId="left-leg-inner" bodyProps={this.state.body}  />
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
-                            </g>
-                            <g id="right-leg" transform={`translate(100 380) scale(-1 1)`}>
-                                <Leg elemId="right-leg-inner" bodyProps={this.state.body}  />
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
-                            </g>
-                            
-
-                        
-                            <Torso bodyProps={this.state.body} />
-                            <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
-
-                            <g id="right-arm" transform={`translate(130 195) scale(-1 1)`}>
-                                <Arm id="right-arm-inner" bodyProps={this.state.body} />
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
-                            </g>
-
-                            <g id="left-arm" transform={`translate(-40 195) scale(1 1)`}>
-                                <Arm id="left-arm-inner" bodyProps={this.state.body} />
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
-                                <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
-                            </g>
-
-                        </g>
+                        <World characterSettings={this.state} />
                     </svg>
                 </div>
             </div>

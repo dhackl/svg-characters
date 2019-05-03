@@ -99,7 +99,7 @@ export default class Hair extends Component {
         let d = this.state.hairPath;
 
         return (
-            <g id="hair-group" transform={`translate(-40 -65) scale(4.6 4.6)`}  >
+            <g className="hair-group" transform={`translate(-40 -65) scale(4.6 4.6)`}  >
                 <path d={d} style={{fill: this.props.hairProps.hairColor}} />
             </g>
         );

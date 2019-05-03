@@ -26,7 +26,7 @@ export default class Neck extends Component {
         
         return (
             <g id="neck-group" transform={`translate(${45 + (1 - width) * 10} ${this.props.headBounds.bottom() - 10}) scale(${-width} ${height})`}>
-                <path d={d} style={{fill: 'url(#neck-gradient)'}} />
+                <path d={d} style={{fill: `url(#neck-gradient-${this.props.id})`}} />
             </g>
         );
     }

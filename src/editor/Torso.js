@@ -32,7 +32,7 @@ export default class Torso extends Component {
         //let height = this.props.noseProps.height * 0.1;
         
         return (
-            <g id="torso-group" transform={`translate(-18 180) scale(4 4)`}>
+            <g className="torso-group" transform={`translate(-18 180) scale(4 4)`}>
                 <path d={d} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 0)`} />
             </g>
         );

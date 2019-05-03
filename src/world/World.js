@@ -28,11 +28,20 @@ export default class World extends Component {
         });
     }
 
+    componentDidUpdate() {
+        SVG.get('player2').move(300, 200);
+    }
+
     render() {
+        /*var player2Settings = Object.assign({}, this.props.characterSettings);
+        var bodySettings = Object.assign({}, this.props.characterSettings.body);
+        bodySettings.skinColor = '#eeaaaa';
+        player2Settings.body = bodySettings;*/
+
         return (
             <g id="world">
                 <g dangerouslySetInnerHTML={{__html: this.state.world}} transform={'scale(5 5)'}></g>
-                <Character settings={this.props.characterSettings} />
+                {this.props.children}
             </g>
         );
     }

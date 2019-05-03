@@ -76,7 +76,7 @@ export default class CharacterEditor extends Component {
             },
             headBounds: new Rectangle(),
             svg: '',
-            zoom: 1.5,
+            zoom: 1.0,
             sideView: false
         };
 
@@ -171,14 +171,14 @@ export default class CharacterEditor extends Component {
         }, {
             cat: 'neck',
             name: 'width',
-            min: 5,
-            max: 30,
+            min: 15,
+            max: 18,
             val: 15
         }, {
             cat: 'neck',
             name: 'height',
-            min: 5,
-            max: 50,
+            min: 30,
+            max: 40,
             val: 30
         }, {
             cat: 'nose',
@@ -218,6 +218,10 @@ export default class CharacterEditor extends Component {
 
         this.buildSVG = this.buildSVG.bind(this);
         this.toggleSideView = this.toggleSideView.bind(this);
+
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.randomizeCharacter = this.randomizeCharacter.bind(this);
     }
 
     componentDidMount() {
@@ -226,8 +230,8 @@ export default class CharacterEditor extends Component {
         //this.transformSidePose();
 
         Clothes.init();
-        this.buildClothesTop();
-        this.buildClothesLegs();
+        this.buildClothesTop(this.state, true);
+        this.buildClothesLegs(this.state, true);
 
         // Generate side-view of character
         // #CLONE
@@ -235,10 +239,11 @@ export default class CharacterEditor extends Component {
         //clone.dmove(200, 0);
         // #USE
         //let draw = SVG.adopt(document.getElementById('character-svg'));
-        //let clone = draw.use(SVG.get('character-outer')).dmove(400, 0);
-     
-        SVG.get('character-outer').dmove(100, 0);
-        
+        //let clone = draw.use(SVG.get('character-outer')).dmove(400, 0);    
+    }
+
+    componentWillMount() {
+        this.randomizeCharacter();
     }
 
     transformSidePose() {
@@ -309,9 +314,9 @@ export default class CharacterEditor extends Component {
 
         if (prop.cat === 'clothes') {
             if (prop.name.indexOf('Top') >= 0)
-                this.buildClothesTop();
+                this.buildClothesTop(this.state, true);
             else
-                this.buildClothesLegs();
+                this.buildClothesLegs(this.state, true);
         }
     }
 
@@ -346,75 +351,87 @@ export default class CharacterEditor extends Component {
         });
     }
 
-    buildClothesTop() {
+    buildClothesTop(settings, useState) {
         // If naked -> return empty path
-        if (this.state.clothes.styleTop === Clothes.STYLE_NAKED) {
-            let clothes = this.state.clothes;
+        if (settings.clothes.styleTop === Clothes.STYLE_NAKED) {
+            let clothes = settings.clothes;
             clothes.clothUpperArm = '';
             clothes.clothLowerArm = '';
             clothes.clothTorso = '';
-            this.setState({
-                clothes: clothes
-            });
+
+            if (useState) {
+                this.setState({
+                    clothes: clothes
+                });
+            }
             return;
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesTop(this.state.clothes.styleTop).then(text => {
+        Clothes.getClothesTop(settings.clothes.styleTop).then(text => {
             var parser = new DOMParser();
 
             // Substitute colors
-            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), this.state.clothes.colorTop);
-            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorTop, '#000000', 0.3));
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), settings.clothes.colorTop);
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(settings.clothes.colorTop, '#000000', 0.3));
 
             var doc = parser.parseFromString(text, "image/svg+xml");
             let upperArm = doc.getElementById('upper-arm');
             let lowerArm = doc.getElementById('lower-arm');
             let torso = doc.getElementById('torso');
+
+            //if (torso != null)
+            //    torso.removeAttribute('id');
             
-            let clothes = this.state.clothes;
+            let clothes = settings.clothes;
             clothes.clothUpperArm = upperArm != null ? upperArm.outerHTML : '';
             clothes.clothLowerArm = lowerArm != null ? lowerArm.outerHTML : '';
             clothes.clothTorso = torso != null ? torso.outerHTML : '';
             
-            this.setState({
-                clothes: clothes
-            });
+            if (useState) {
+                this.setState({
+                    clothes: clothes
+                });
+            }
         });
 
     }
 
-    buildClothesLegs() {
+    buildClothesLegs(settings, useState) {
         // If naked -> return empty path
-        if (this.state.clothes.styleLegs === Clothes.STYLE_NAKED) {
-            let clothes = this.state.clothes;
+        if (settings.clothes.styleLegs === Clothes.STYLE_NAKED) {
+            let clothes = settings.clothes;
             clothes.clothUpperLeg = '';
             clothes.clothLowerLeg = '';
-            this.setState({
-                clothes: clothes
-            });
+            if (useState) {
+                this.setState({
+                    clothes: clothes
+                });
+            }
             return;
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesLegs(this.state.clothes.styleLegs).then(text => {
+        Clothes.getClothesLegs(settings.clothes.styleLegs).then(text => {
             var parser = new DOMParser();
 
             // Substitute colors
-            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), this.state.clothes.colorLegs);
-            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(this.state.clothes.colorLegs, '#000000', 0.3));
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), settings.clothes.colorLegs);
+            text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(settings.clothes.colorLegs, '#000000', 0.3));
 
             var doc = parser.parseFromString(text, "image/svg+xml");
             let upperLeg = doc.getElementById('upper-leg');
             let lowerLeg = doc.getElementById('lower-leg');
             
-            let clothes = this.state.clothes;
+            let clothes = settings.clothes;
             clothes.clothUpperLeg = upperLeg != null ? upperLeg.outerHTML : '';
             clothes.clothLowerLeg = lowerLeg != null ? lowerLeg.outerHTML : '';
             
-            this.setState({
-                clothes: clothes
-            });
+            if (useState) {
+                this.setState({
+                    clothes: clothes
+                });
+            }
         });
     }
 
@@ -430,19 +447,76 @@ export default class CharacterEditor extends Component {
         }, []); 
     }
 
+    randomizeCharacter() {
+        var settings = {};
+        for (var i = 0; i < this.characterProperties.length; i++) {
+            var prop = this.characterProperties[i];
+
+            // Select or generate new body part object
+            var bodyPart = settings[prop.cat];
+            if (!bodyPart) {
+                settings[prop.cat] = {};
+                bodyPart = settings[prop.cat];
+            }
+
+            // Generate random value within the prop's bounds (color, items or min/max range)
+            var val = null;
+            if (prop.type === 'color') {
+                if (prop.name === 'skinColor')
+                    val = ColorUtils.getRandomSkinTone();
+                else
+                    val = ColorUtils.getRandomColor();
+            }
+            else if (prop.type === 'string') {
+                let keys = Array.from(prop.items.keys());
+                let randomKey = keys[Math.floor(Math.random() * keys.length)];
+                val = randomKey;
+                if (!val) 
+                    val = prop.val;
+            }
+            else {
+                val = prop.min + Math.floor(Math.random() * (prop.max - prop.min));
+            }
+
+            bodyPart[prop.name] = val;
+            
+        }
+
+        // Build Clothes
+        this.buildClothesTop(settings, false);
+        this.buildClothesLegs(settings, false);
+
+        settings.headBounds = this.state.headBounds;
+        settings.svg = this.state.svg;
+        settings.zoom = this.state.zoom;
+        settings.sideView = this.state.sideView;
+
+        this.randomCharacterSettings = settings;
+        this.setState({});
+    }
+
     handleKeyDown(ev) {
+        var characterId = 'player1';
+        var step = 30;
+        var duration = 50;
+
         if (ev.key === 'ArrowLeft') {
-            SVG.get('character-outer').dx(-5);
+            this.playerAnimation = SVG.get(characterId).animate(duration).dx(-step);
         }
         else if (ev.key === 'ArrowRight') {
-            SVG.get('character-outer').dx(5);
+            this.playerAnimation = SVG.get(characterId).animate(duration).dx(step)
         }
         else if (ev.key === 'ArrowUp') {
-            SVG.get('character-outer').dy(-5);
+            this.playerAnimation = SVG.get(characterId).animate(duration).dy(-step);
         }
         else if (ev.key === 'ArrowDown') {
-            SVG.get('character-outer').dy(5);
+            this.playerAnimation = SVG.get(characterId).animate(duration).dy(step);
         }
+    }
+
+    handleKeyUp() {
+        this.playerAnimation.finish();
+        this.playerAnimation.stop();
     }
 
     render() {
@@ -467,13 +541,17 @@ export default class CharacterEditor extends Component {
             <div id="character-editor">
                 <div id="character-toolbar">
                     <button className="btn-toolbar" onClick={this.toggleSideView}>Toggle Side View</button>
+                    <button className="btn-toolbar" onClick={this.randomizeCharacter}>Randomize</button>
                 </div>
                 <div id="character-props">
                     {elements}
                 </div>
-                <div id="character-preview" onKeyDown={this.handleKeyDown} tabIndex="0">
+                <div id="character-preview" onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp} tabIndex="0">
                     <svg id="character-svg">
-                        <World characterSettings={this.state} />
+                        <World>
+                            <Character id="player1" settings={this.state} />
+                            <Character id="player2" settings={this.randomCharacterSettings} />
+                        </World>
                     </svg>
                 </div>
             </div>

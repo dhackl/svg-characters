@@ -92,8 +92,8 @@ export default class Character extends Component {
         this.bodyAnimations.push(SVG.get('left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0));
 
         // Legs
-        this.bodyAnimations.push(SVG.get('left-leg').animate(500).scale(1, 1.2, 0, 0));
-        this.bodyAnimations.push(SVG.get('right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0));
+        this.bodyAnimations.push(SVG.select('.left-leg').animate(500).scale(1, 1.2, 0, 0));
+        this.bodyAnimations.push(SVG.select('.right-leg').animate(500).delay(500).scale(1, 1.2, 0, 0));
 
         // Body Shaking
         this.bodyAnimations.push(SVG.get('character-head').animate(500).dmove(0, 5));
@@ -118,14 +118,14 @@ export default class Character extends Component {
     render() {
         
         return (
-            <g id="character-outer" transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
+            <g id={this.props.id} transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
 
                 <defs>
                     <linearGradient id="mouth-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0" stopColor="#e69c6b" />
                         <stop offset="1" stopColor="#bc5d38" />                                
                     </linearGradient>
-                    <linearGradient id="neck-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <linearGradient id={`neck-gradient-${this.props.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0" stopColor={ColorUtils.blend(this.props.settings.body.skinColor, '#552200', 0.2)} />
                         <stop offset="1" stopColor={this.props.settings.body.skinColor} />                                
                     </linearGradient>
@@ -137,7 +137,7 @@ export default class Character extends Component {
                 </defs>
 
                 <g id="character-head">
-                    <Neck neckProps={this.props.settings.neck} headBounds={this.props.settings.headBounds} />
+                    <Neck neckProps={this.props.settings.neck} headBounds={this.props.settings.headBounds} id={this.props.id} />
 
                     <path id="head-main" d={this.props.settings.svg} style={{fill: this.props.settings.body.skinColor}} />
 
@@ -152,12 +152,12 @@ export default class Character extends Component {
                     <Hair hairProps={this.props.settings.hair} headBounds={this.props.settings.headBounds} />
                 </g>
 
-                <g id="left-leg" transform={`translate(-10 380) scale(1 1)`}>
+                <g className="left-leg" transform={`translate(-10 380) scale(1 1)`}>
                     <Leg elemId="left-leg-inner" bodyProps={this.props.settings.body}  />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>
                 </g>
-                <g id="right-leg" transform={`translate(100 380) scale(-1 1)`}>
+                <g className="right-leg" transform={`translate(100 380) scale(-1 1)`}>
                     <Leg elemId="right-leg-inner" bodyProps={this.props.settings.body}  />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>

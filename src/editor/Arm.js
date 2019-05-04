@@ -13,7 +13,7 @@ export default class Arm extends Component {
         
         return (
             <g id="arm-group" transform={this.props.transform}>
-                <UpperArm bodyProps={this.props.bodyProps}>
+                <UpperArm bodyProps={this.props.bodyProps} isFemale={this.props.isFemale}>
                 </UpperArm>
             </g>
         );
@@ -35,6 +35,15 @@ class UpperArm extends Component {
         l 0,7.15 11,0 z
         `;
 
+        if (this.props.isFemale) {
+            pathStr = `
+            m 0,0 
+            c 0,-2.35 -1,-4.5 -2.75,-5.7 
+            -0.8161165,-0.183534 -2.773787,-0.1777282 -3.6109127,0 
+            -1.7,1.8 -2.75,3.35 -2.75,5.7 
+            v 7.15 h 7.1109127 z`;
+        }
+
         return pathStr;
     }
 
@@ -46,6 +55,12 @@ class UpperArm extends Component {
         h -5.70 
         c -0.35,-6.50 -2.80,-15.55 0,-18.25 z
         `;
+
+        if (this.props.isFemale) {
+            pathStr = `
+            m 1,0 7.3071431,0 c 1.494642,-0.4734453 -1.375,8.7290255 -1.375,18.2499997 h -4.3250001 c -0.151204,0 -2.742754,-17.0334986 -1.607143,-18.2499997 z
+            `;
+        }
 
         return pathStr;
     }
@@ -62,11 +77,13 @@ class UpperArm extends Component {
         
         let offsetX = this.props.bodyProps.direction == 1 ? 10 : 0;
 
+        let rotation = this.props.isFemale ? 20 : 20;
+
         return (
-            <g id="upper-arm-group" transform={`scale(4.3 4.3) rotate(20 5 5)`}>
+            <g id="upper-arm-group" transform={`scale(4.3 4.3) rotate(${rotation} 5 5)`}>
                 <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(0 12) scale(1 1)`} />
                 <path d={dShoulder} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(10 7) scale(1 1)`} />
-                <LowerArm bodyProps={this.props.bodyProps} />
+                <LowerArm bodyProps={this.props.bodyProps} isFemale={this.props.isFemale} />
             </g>
         );
     }
@@ -89,6 +106,12 @@ class LowerArm extends Component {
         m 0,0 c 1.88116,-6.64603 7.73478,-0.4098 6.36121,-1.96896 2.26238,2.36971 2.51042,15.32313 4.81068,22.758483 l -4.64925,1.599031 c -5.37348,-17.009043 -7.11155,-18.558942 -6.52264,-22.388554 z
         `;
 
+        if (this.props.isFemale) {
+            pathStr = `
+            m 0,0 c 1.3804974,-5.0439096 3.5767657,-0.85532537 3.9924916,-0.60024157 1.4783654,1.47836544 2.492653,9.97693557 4.9696895,17.58906557 l -3.1466479,1.245478 c 0,0 -6.4044432,-14.40469 -5.8155332,-18.234302 z
+            `;
+        }
+
         return pathStr;
     }
 
@@ -97,10 +120,13 @@ class LowerArm extends Component {
         //let width = this.props.noseProps.width * 0.1;
         //let height = this.props.noseProps.height * 0.1;
         
+        let rotation = this.props.isFemale ? 20 : 20;
+        let femaleOffset = this.props.isFemale ? 3 : 0;
+
         return (
-            <g id="lower-arm-group" transform={`translate(0 30) rotate(-20 0 0)`}>
+            <g className="lower-arm-group" transform={`translate(${femaleOffset} 30) rotate(-${rotation} 0 0)`}>
                 <path d={dArm} style={{fill: this.props.bodyProps.skinColor}} />
-                <Hand bodyProps={this.props.bodyProps} />
+                <Hand bodyProps={this.props.bodyProps} isFemale={this.props.isFemale} />
             </g>
         );
     }
@@ -150,8 +176,10 @@ class Hand extends Component {
         //let width = this.props.noseProps.width * 0.1;
         //let height = this.props.noseProps.height * 0.1;
         
+        let scale = this.props.isFemale ? 0.25 : 0.3;
+
         return (
-            <g id="hand-group" transform={`translate(5 15) scale(0.3 0.3)`}>
+            <g id="hand-group" transform={`translate(5 15) scale(${scale} ${scale})`}>
                 <path d={dHand} style={{fill: this.props.bodyProps.skinColor}} />
                 <path d={dThumb} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(15 2)`} />
             </g>

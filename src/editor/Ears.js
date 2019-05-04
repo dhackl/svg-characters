@@ -22,11 +22,11 @@ export default class Ears extends Component {
         //let innerEar = (
         
         return (
-            <g id="ears-group">
-                <g id="left-ear" transform={`translate(${this.props.headBounds.left() - 5} 40) scale(3 3)`} >
+            <g className="ears-group">
+                <g className="left-ear" transform={`translate(${this.props.headBounds.left() - 5} 40) scale(3 3)`} >
                     <path d={d} style={{fill: this.props.bodyProps.skinColor}} />
                 </g>
-                <g id="right-ear" transform={`translate(${this.props.headBounds.right() + 5} 40) scale(-3 3)`} >
+                <g className="right-ear" transform={`translate(${this.props.headBounds.right() + 5} 40) scale(-3 3)`} >
                     <path d={d} style={{fill: this.props.bodyProps.skinColor}} />
                 </g>                
             </g>

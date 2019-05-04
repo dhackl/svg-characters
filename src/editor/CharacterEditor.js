@@ -222,10 +222,14 @@ export default class CharacterEditor extends Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.randomizeCharacter = this.randomizeCharacter.bind(this);
+        this.update = this.update.bind(this);
+
+        this.playerRef = React.createRef();
+        this.worldRef = React.createRef();
     }
 
     componentDidMount() {
-        this.buildSVG();
+        this.buildSVG(this.state, true);
         
         //this.transformSidePose();
 
@@ -256,19 +260,19 @@ export default class CharacterEditor extends Component {
         }, () => {
             if (this.state.sideView) {
                 // Face
-                SVG.get('left-eye').dmove(30, 0);
-                SVG.get('left-brow').dmove(6, 0);
-                SVG.get('right-eye').dmove(-30, 0).scale(0.8, 1);
-                SVG.get('right-brow').dmove(-6, 0);
+                SVG.select('.left-eye').dmove(30, 0);
+                SVG.select('.left-brow').dmove(6, 0);
+                SVG.select('.right-eye').dmove(-30, 0).scale(0.8, 1);
+                SVG.select('.right-brow').dmove(-6, 0);
 
-                SVG.get('right-ear').hide();
+                SVG.select('.right-ear').hide();
 
-                SVG.get('nose-group').dmove(35, 0);
-                SVG.get('mouth-group').dmove(35, 0);
+                SVG.select('.nose-group').dmove(35, 0);
+                SVG.select('.mouth-group').dmove(35, 0);
 
                 // Arms
                 //SVG.get('left-arm').dmove(20, 0);
-                SVG.get('right-arm').dmove(10, 0).scale(-1, 1).rotate(-20).back();
+                SVG.select('.right-arm').dmove(10, 0).scale(-1, 1).rotate(-20).back();
 
                 var tempState = this.state;
                 tempState.hair.hairStyle += '_side';
@@ -276,19 +280,19 @@ export default class CharacterEditor extends Component {
             }
             else {
                 // Face
-                SVG.get('left-eye').dmove(-30, 0);
-                SVG.get('left-brow').dmove(-6, 0);
-                SVG.get('right-eye').scale(1, 1).dmove(30, 0);
-                SVG.get('right-brow').dmove(6, 0);
+                SVG.select('.left-eye').dmove(-30, 0);
+                SVG.select('.left-brow').dmove(-6, 0);
+                SVG.select('.right-eye').scale(1, 1).dmove(30, 0);
+                SVG.select('.right-brow').dmove(6, 0);
 
-                SVG.get('right-ear').show();
+                SVG.select('.right-ear').show();
 
-                SVG.get('nose-group').dmove(-35, 0);
-                SVG.get('mouth-group').dmove(-35, 0);
+                SVG.select('.nose-group').dmove(-35, 0);
+                SVG.select('.mouth-group').dmove(-35, 0);
 
                 // Arms
                 //SVG.get('left-arm').dmove(20, 0);
-                SVG.get('right-arm').rotate(20).scale(-1, 1).dmove(-10, 0).front();
+                SVG.select('.right-arm').rotate(20).scale(-1, 1).dmove(-10, 0).front();
 
                 var tempState = this.state;
                 tempState.hair.hairStyle = this.state.hair.hairStyle.substring(0, this.state.hair.hairStyle.length - 5);
@@ -310,7 +314,7 @@ export default class CharacterEditor extends Component {
         var state = this.state;
         state[bodyPart] = bodyPart;
         this.setState(state);
-        this.buildSVG();
+        this.buildSVG(this.state, true);
 
         if (prop.cat === 'clothes') {
             if (prop.name.indexOf('Top') >= 0)
@@ -318,16 +322,18 @@ export default class CharacterEditor extends Component {
             else
                 this.buildClothesLegs(this.state, true);
         }
+
+        
     }
 
-    buildSVG() {
-        var right = 60 + this.state.head.width;
-        var left = 40 - this.state.head.width;
-        var top = 60 - this.state.head.height;
-        var bottom = 60 + this.state.head.height;
+    buildSVG(settings, useState) {
+        var right = 60 + settings.head.width;
+        var left = 40 - settings.head.width;
+        var top = 60 - settings.head.height;
+        var bottom = 60 + settings.head.height;
 
-        var s = this.state.head.roundnessTop;
-        var t = this.state.head.roundnessBottom;
+        var s = settings.head.roundnessTop;
+        var t = settings.head.roundnessBottom;
 
         /*var pathStr = `
         M ${right} 50 
@@ -345,10 +351,16 @@ export default class CharacterEditor extends Component {
           ${right - s} ${top} ${right} ${left + s} ${right} 50 Z
         `;
 
-        this.setState({
-            svg: pathStr,
-            headBounds: new Rectangle(left, top, right - left, bottom - top)
-        });
+        if (useState) {
+            this.setState({
+                svg: pathStr,
+                headBounds: new Rectangle(left, top, right - left, bottom - top)
+            });
+        }
+        else {
+            settings.svg = pathStr;
+            settings.headBounds = new Rectangle(left, top, right - left, bottom - top);
+        }
     }
 
     buildClothesTop(settings, useState) {
@@ -482,41 +494,56 @@ export default class CharacterEditor extends Component {
             
         }
 
-        // Build Clothes
+        // Build
+        this.buildSVG(settings, false);
         this.buildClothesTop(settings, false);
         this.buildClothesLegs(settings, false);
 
-        settings.headBounds = this.state.headBounds;
-        settings.svg = this.state.svg;
         settings.zoom = this.state.zoom;
         settings.sideView = this.state.sideView;
 
         this.randomCharacterSettings = settings;
-        this.setState({});
+
+        this.buildSVG(this.state, true);
+        this.buildClothesTop(this.state, true);
+        this.buildClothesLegs(this.state, true);
     }
 
     handleKeyDown(ev) {
-        var characterId = 'player1';
-        var step = 30;
-        var duration = 50;
+        var xDir = 0, yDir = 0;
 
         if (ev.key === 'ArrowLeft') {
-            this.playerAnimation = SVG.get(characterId).animate(duration).dx(-step);
+            xDir = -1;
         }
         else if (ev.key === 'ArrowRight') {
-            this.playerAnimation = SVG.get(characterId).animate(duration).dx(step)
+            xDir = 1;
         }
         else if (ev.key === 'ArrowUp') {
-            this.playerAnimation = SVG.get(characterId).animate(duration).dy(-step);
+            yDir = -1;
         }
         else if (ev.key === 'ArrowDown') {
-            this.playerAnimation = SVG.get(characterId).animate(duration).dy(step);
+            yDir = 1;
         }
+
+        var player = this.playerRef.current;
+        player.move({x: xDir, y: yDir});
+
+        var world = this.worldRef.current;
+        world.handleCollisions(player);
     }
 
     handleKeyUp() {
-        this.playerAnimation.finish();
-        this.playerAnimation.stop();
+        var player = this.playerRef.current;
+        player.stopMoving();
+    }
+
+    update(delta) {        
+        // Check for collision (TODO: move to a different/better location !!) 
+        var player = this.playerRef.current;
+        var world = this.worldRef.current;
+        world.handleCollisions(player);
+
+        //setInterval(this.update, 33);
     }
 
     render() {
@@ -548,8 +575,8 @@ export default class CharacterEditor extends Component {
                 </div>
                 <div id="character-preview" onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp} tabIndex="0">
                     <svg id="character-svg">
-                        <World>
-                            <Character id="player1" settings={this.state} />
+                        <World ref={this.worldRef}>
+                            <Character isFemale="true" id="player1" ref={this.playerRef} settings={this.state} />
                             <Character id="player2" settings={this.randomCharacterSettings} />
                         </World>
                     </svg>

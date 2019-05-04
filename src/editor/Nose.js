@@ -32,8 +32,8 @@ export default class Nose extends Component {
         let height = this.props.noseProps.height * 0.1;
         
         return (
-            <g id="nose-outer" transform={`translate(${60 + (1 - width) * 2} ${this.props.headBounds.bottom() - 80})`}>
-                <g id="nose-group">
+            <g className="nose-outer" transform={`translate(${60 + (1 - width) * 2} ${this.props.headBounds.bottom() - 80})`}>
+                <g className="nose-group">
                     <path d={d} style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#772200', 0.2)}} transform={`scale(${width} ${height})`} />
                     <path d={d} style={{fill: this.props.bodyProps.skinColor}} transform={`translate(4 -2) scale(${width} ${height})`} />
                 </g>

@@ -7,6 +7,11 @@ import hairBald01 from '../resources/hair/bald01.svg';
 import hairShort01 from '../resources/hair/short01.svg';
 import hairShort01Side from '../resources/hair/short01_side.svg';
 import hairShort02 from '../resources/hair/short02.svg';
+import hairShort03 from '../resources/hair/short03.svg';
+import hairShort04 from '../resources/hair/short04.svg';
+import hairVeryShort01 from '../resources/hair/very-short01.svg';
+
+import hairLong01 from '../resources/hair/long01.svg';
 
 export default class Hair extends Component {
 
@@ -17,7 +22,8 @@ export default class Hair extends Component {
         super(props);
 
         this.state = {
-            hairPath: ''
+            hairPath: '',
+            hairBackPath: ''
         };
 
         Hair.hairStyles.set("bald", hairShort01);
@@ -25,6 +31,11 @@ export default class Hair extends Component {
         Hair.hairStyles.set("short01", hairShort01);
         Hair.hairStyles.set("short01_side", hairShort01Side);
         Hair.hairStyles.set("short02", hairShort02);
+        Hair.hairStyles.set("short03", hairShort03);
+        Hair.hairStyles.set("short04", hairShort04);
+        Hair.hairStyles.set("veryShort01", hairVeryShort01);
+
+        Hair.hairStyles.set("long01", hairLong01);
 
     }
 
@@ -46,9 +57,12 @@ export default class Hair extends Component {
             var parser = new DOMParser();
             var doc = parser.parseFromString(text, "image/svg+xml");
             let path = doc.getElementById('hair-path').getAttribute('d');
+            let backElem = doc.getElementById('hair-back');
+            let pathBack = backElem ? backElem.getAttribute('d') : '';
             
             this.setState({
-                hairPath: path
+                hairPath: path,
+                hairBackPath: pathBack
             });
         });
     }
@@ -97,10 +111,12 @@ export default class Hair extends Component {
 
     render() {
         let d = this.state.hairPath;
+        let dBack = this.state.hairBackPath;
 
         return (
             <g className="hair-group" transform={`translate(-40 -65) scale(4.6 4.6)`}  >
                 <path d={d} style={{fill: this.props.hairProps.hairColor}} />
+                <path transform={`translate(-40 -65) scale(4.6 4.6)`} className="hair-back" d={dBack} style={{fill: this.props.hairProps.hairColor}} />
             </g>
         );
     }

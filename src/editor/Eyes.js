@@ -47,9 +47,27 @@ export default class Eyes extends Component {
         return pathStr;
     }
 
+    buildEyeShade() {
+        var right = 0 + this.props.eyeProps.width;
+        var left = 0 - this.props.eyeProps.width;
+        var top = 0 + this.props.eyeProps.height * 2 * 0.8;
+        var bottom = this.props.eyeProps.height;
+
+        var pathStr = `
+        M ${right} 0 
+        C ${right} 0 ${right / 2} ${bottom} 0 ${bottom}
+          ${left / 2} ${bottom} ${left} 0 ${left} 0 
+          ${left} 0 ${left / 2} ${top} 0 ${top}
+          ${right / 2} ${top} ${right} 0 ${right} 0 Z
+        `;
+
+        return pathStr;
+    }
+
     render() {
         let d = this.buildSVG();
         let dLid = this.buildEyeLid(this.props.eyeProps.eyeLid * 0.01);
+        let lidColor = this.props.isFemale ? 'rgb(130, 80, 70)' : ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2);
 
         let width = this.props.eyeProps.width;
         let innerEye = (
@@ -82,16 +100,24 @@ export default class Eyes extends Component {
         );
         
         return (
-            <g id="eyes-group" transform={`translate(50 40)`}>
-                <g id="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
+            <g className="eyes-group" transform={`translate(50 40)`}>
+                <g className="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
+                    {this.props.isFemale &&
+                        <path d={this.buildEyeShade()} filter="url(#filter-blur)" style={{fill: '#000', opacity: 0.7}} transform="translate(0 0)" />
+                    }
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}
-                    <path d={dLid} id="eye-lid" style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
+                    <path d={dLid} className="eye-lid" style={{fill: lidColor}} />
+                   
                 </g>
-                <g id="right-eye" transform={`translate(${this.props.eyeProps.distance} 0) scale(-1 1)`}>
+                <g className="right-eye" transform={`translate(${this.props.eyeProps.distance} 0) scale(-1 1)`}>
+                    {this.props.isFemale &&
+                        <path d={this.buildEyeShade()} filter="url(#filter-blur)" style={{fill: '#000', opacity: 0.7}} transform="translate(0 0)" />
+                    }
                     <path d={d} style={{fill: '#fff'}} />
                     {innerEye}
-                    <path d={dLid} style={{fill: ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2)}} />
+                    <path d={dLid} className="eye-lid" style={{fill: lidColor}} />
+                    
                 </g>                
             </g>
         );

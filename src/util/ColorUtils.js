@@ -22,7 +22,6 @@ export default class ColorUtils {
     static getRandomSkinTone() {
         var skinTones = ['#ff9d6d', '#b76e4a', '#eba36f', '#f9bcae'];
         var randomTone = skinTones[Math.floor(Math.random() * skinTones.length)];
-        console.log(randomTone);
         return ColorUtils.blend(randomTone, '#ffffff', Math.random() * 0.5);
     }
 

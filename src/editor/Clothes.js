@@ -21,35 +21,45 @@ export default class Clothes  {
     static COLOR_PRIMARY = '#ff8844'; // Main color to substitute
     static COLOR_PRIMARY_DARK = '#ce520b'; // Dark version of main color to substitute
 
-    static clothesTop = new Map();
-    static clothesLegs = new Map();
+    static clothesTopMen = new Map();
+    static clothesLegsMen = new Map();
+
+    static clothesTopWomen = new Map();
+    static clothesLegsWomen = new Map();
 
 
     static init() {
-        Clothes.clothesTop.set('naked', tshirtBasic);
-        Clothes.clothesTop.set('tshirt', tshirtBasic);
-        Clothes.clothesTop.set('shirt-white', shirtWhite);
-        Clothes.clothesTop.set('tanktop01', tanktop01);
-        Clothes.clothesTop.set('tanktop02', tanktop02);
-        Clothes.clothesTop.set('suit01', suit01);
-        Clothes.clothesTop.set('tshirt-women', tshirtWomen);
+        // Men
+        Clothes.clothesTopMen.set('naked', tshirtBasic);
+        Clothes.clothesTopMen.set('tshirt', tshirtBasic);
+        Clothes.clothesTopMen.set('shirt-white', shirtWhite);
+        Clothes.clothesTopMen.set('tanktop01', tanktop01);
+        Clothes.clothesTopMen.set('tanktop02', tanktop02);
+        Clothes.clothesTopMen.set('suit01', suit01);
 
-        Clothes.clothesLegs.set('naked', tshirtBasic);
-        Clothes.clothesLegs.set('jeans', jeansBasic);
-        Clothes.clothesLegs.set('shorts', shortsBasic);
-        Clothes.clothesLegs.set('shorts-women', shortsWomen);
+        Clothes.clothesLegsMen.set('naked', tshirtBasic);
+        Clothes.clothesLegsMen.set('jeans', jeansBasic);
+        Clothes.clothesLegsMen.set('shorts', shortsBasic);
         
+
+        // Women
+        Clothes.clothesTopWomen.set('naked', tshirtWomen);
+        Clothes.clothesTopWomen.set('tshirt-women', tshirtWomen);
+
+        Clothes.clothesLegsWomen.set('naked', jeansBasic);        
+        Clothes.clothesLegsWomen.set('jeans', jeansBasic);
+        Clothes.clothesLegsWomen.set('shorts-women', shortsWomen);
     }
 
-    static getClothesTop(styleId) {
+    static getClothesTop(isFemale, styleId) {
         // Load external SVG for clothes data
-        let clothesStyle = Clothes.clothesTop.get(styleId);
+        let clothesStyle = isFemale === true ? Clothes.clothesTopWomen.get(styleId) : Clothes.clothesTopMen.get(styleId);
         return fetch(clothesStyle).then(r => r.text());
     }
 
-    static getClothesLegs(styleId) {
+    static getClothesLegs(isFemale, styleId) {
         // Load external SVG for clothes data
-        let clothesStyle = Clothes.clothesLegs.get(styleId);
+        let clothesStyle = isFemale === true ? Clothes.clothesLegsWomen.get(styleId) : Clothes.clothesLegsMen.get(styleId);
         return fetch(clothesStyle).then(r => r.text());
     }
 }

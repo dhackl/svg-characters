@@ -67,7 +67,7 @@ export default class Eyes extends Component {
     render() {
         let d = this.buildSVG();
         let dLid = this.buildEyeLid(this.props.eyeProps.eyeLid * 0.01);
-        let lidColor = this.props.isFemale ? 'rgb(130, 80, 70)' : ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2);
+        let lidColor = this.props.isFemale === true ? 'rgb(130, 80, 70)' : ColorUtils.blend(this.props.bodyProps.skinColor, '#552200', 0.2);
 
         let width = this.props.eyeProps.width;
         let innerEye = (
@@ -102,7 +102,7 @@ export default class Eyes extends Component {
         return (
             <g className="eyes-group" transform={`translate(50 40)`}>
                 <g className="left-eye" transform={`translate(${-this.props.eyeProps.distance} 0)`} >
-                    {this.props.isFemale &&
+                    {this.props.isFemale === true &&
                         <path d={this.buildEyeShade()} filter="url(#filter-blur)" style={{fill: '#000', opacity: 0.7}} transform="translate(0 0)" />
                     }
                     <path d={d} style={{fill: '#fff'}} />
@@ -111,7 +111,7 @@ export default class Eyes extends Component {
                    
                 </g>
                 <g className="right-eye" transform={`translate(${this.props.eyeProps.distance} 0) scale(-1 1)`}>
-                    {this.props.isFemale &&
+                    {this.props.isFemale === true &&
                         <path d={this.buildEyeShade()} filter="url(#filter-blur)" style={{fill: '#000', opacity: 0.7}} transform="translate(0 0)" />
                     }
                     <path d={d} style={{fill: '#fff'}} />

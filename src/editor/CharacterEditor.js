@@ -19,11 +19,15 @@ import Clothes from './Clothes';
 import Character from './Character';
 
 import World from '../world/World';
+import CharacterProperties from './CharacterProperties';
 
 export default class CharacterEditor extends Component {
 
     constructor(props) {
         super(props);
+
+        Clothes.init();
+        Hair.init();
 
         this.state = {
             body: {
@@ -80,142 +84,6 @@ export default class CharacterEditor extends Component {
             sideView: false
         };
 
-        this.characterProperties = [{
-            cat: 'body',
-            name: 'direction',
-            min: 0,
-            max: 3,
-            val: 0
-        }, {
-            cat: 'body',
-            name: 'skinColor',
-            type: 'color',
-            val: '#f3bf85',
-        }, {
-            cat: 'body',
-            name: 'fat',
-            min: 0,
-            max: 30,
-            val: 5,
-        }, {
-            cat: 'head',
-            name: 'width',
-            min: 50,
-            max: 70,
-            val: 60,
-        }, {
-            cat: 'head',
-            name: 'height',
-            min: 80,
-            max: 100,
-            val: 90,
-        }, {
-            cat: 'head',
-            name: 'roundnessTop',
-            min: 1,
-            max: 40,
-            val: 20,
-        }, {
-            cat: 'head',
-            name: 'roundnessBottom',
-            min: 5,
-            max: 40,
-            val: 20,
-        }, {
-            cat: 'hair',
-            name: 'hairStyle',
-            type: 'string',
-            val: 'short01',
-            items: Hair.hairStyles
-        }, {
-            cat: 'hair',
-            name: 'hairColor',
-            type: 'color',
-            val: '#aa5511'
-        }, {
-            cat: 'eye',
-            name: 'distance',
-            min: 15,
-            max: 35,
-            val: 25
-        }, {
-            cat: 'eye',
-            name: 'width',
-            min: 10,
-            max: 20,
-            val: 15
-        }, {
-            cat: 'eye',
-            name: 'height',
-            min: 5,
-            max: 12,
-            val: 8
-        }, {
-            cat: 'eye',
-            name: 'eyeLid',
-            min: 0,
-            max: 100,
-            val: 20
-        }, {
-            cat: 'mouth',
-            name: 'width',
-            min: 10,
-            max: 25,
-            val: 18
-        }, {
-            cat: 'mouth',
-            name: 'height',
-            min: 1,
-            max: 20,
-            val: 8
-        }, {
-            cat: 'neck',
-            name: 'width',
-            min: 15,
-            max: 18,
-            val: 15
-        }, {
-            cat: 'neck',
-            name: 'height',
-            min: 30,
-            max: 40,
-            val: 30
-        }, {
-            cat: 'nose',
-            name: 'width',
-            min: 15,
-            max: 50,
-            val: 30
-        }, {
-            cat: 'nose',
-            name: 'height',
-            min: 15,
-            max: 50,
-            val: 35
-        }, {
-            cat: 'clothes',
-            name: 'styleTop',
-            type: 'string',
-            val: 'tshirt',
-            items: Clothes.clothesTop
-        }, {
-            cat: 'clothes',
-            name: 'colorTop',
-            type: 'color',
-            val: '#ab2710'
-        }, {
-            cat: 'clothes',
-            name: 'styleLegs',
-            type: 'string',
-            val: 'jeans',
-            items: Clothes.clothesLegs
-        }, {
-            cat: 'clothes',
-            name: 'colorLegs',
-            type: 'color',
-            val: '#20243c'
-        }];
-
         this.buildSVG = this.buildSVG.bind(this);
         this.toggleSideView = this.toggleSideView.bind(this);
 
@@ -233,7 +101,6 @@ export default class CharacterEditor extends Component {
         
         //this.transformSidePose();
 
-        Clothes.init();
         this.buildClothesTop(this.state, true);
         this.buildClothesLegs(this.state, true);
 
@@ -380,7 +247,7 @@ export default class CharacterEditor extends Component {
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesTop(settings.clothes.styleTop).then(text => {
+        Clothes.getClothesTop(settings.isFemale, settings.clothes.styleTop).then(text => {
             var parser = new DOMParser();
 
             // Substitute colors
@@ -424,7 +291,7 @@ export default class CharacterEditor extends Component {
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesLegs(settings.clothes.styleLegs).then(text => {
+        Clothes.getClothesLegs(settings.isFemale, settings.clothes.styleLegs).then(text => {
             var parser = new DOMParser();
 
             // Substitute colors
@@ -461,8 +328,11 @@ export default class CharacterEditor extends Component {
 
     randomizeCharacter() {
         var settings = {};
-        for (var i = 0; i < this.characterProperties.length; i++) {
-            var prop = this.characterProperties[i];
+        var isFemale = Math.random() < 0.5;
+        var charProps = isFemale ? CharacterProperties.propsFemale : CharacterProperties.propsMale;
+
+        for (var i = 0; i < charProps.length; i++) {
+            var prop = charProps[i];
 
             // Select or generate new body part object
             var bodyPart = settings[prop.cat];
@@ -501,6 +371,7 @@ export default class CharacterEditor extends Component {
 
         settings.zoom = this.state.zoom;
         settings.sideView = this.state.sideView;
+        settings.isFemale = isFemale;
 
         this.randomCharacterSettings = settings;
 
@@ -547,7 +418,7 @@ export default class CharacterEditor extends Component {
     }
 
     render() {
-        let propGroups = this.groupByArray(this.characterProperties, 'cat');
+        let propGroups = this.groupByArray(CharacterProperties.propsMale, 'cat');
 
         let elements = propGroups.map(group => 
             <PropertyGroupBox name={group.key} key={group.key} >
@@ -577,7 +448,7 @@ export default class CharacterEditor extends Component {
                     <svg id="character-svg">
                         <World ref={this.worldRef}>
                             <Character isFemale="true" id="player1" ref={this.playerRef} settings={this.state} />
-                            <Character id="player2" settings={this.randomCharacterSettings} />
+                            <Character isFemale={this.randomCharacterSettings.isFemale} id="player2" settings={this.randomCharacterSettings} />
                         </World>
                     </svg>
                 </div>

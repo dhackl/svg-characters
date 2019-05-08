@@ -27,33 +27,55 @@ export default class Character extends Component {
             bodyAnimations: [],
             isWalking: false,
             direction: {x: 0, y: 0},
-            sideView: false
+            sideView: false,
+
+            animOffsets: {
+                leftLegPos: {x: 0, y: 0},
+                rightLegPos: {x: 0, y: 0},
+                leftArmPos: {x: 0, y: 0},
+                rightArmPos: {x: 0, y: 0},
+                legScale: 1
+            }
         };
 
         this.mainRef = React.createRef();
-
-        this.leftLegPos = {x: -10, y: 380};
-        this.rightLegPos = {x: 100, y: 380};
-        this.leftArmPos = {x: 130, y: 195};
-        this.rightArmPos = {x: -40, y: 195};
-        this.legScale = 1;
-
-        if (this.props.isFemale) {
-            this.leftLegPos = {x: 0, y: 380};
-            this.rightLegPos = {x: 90, y: 380};
-            this.leftArmPos = {x: 120, y: 185};
-            this.rightArmPos = {x: -30, y: 185};
-            this.legScale = 0.7;
-        }
     }
 
     componentDidMount() {
         //this.buildHead();
-        
-        // Animate character
-        this.createBodyAnimations();
 
         this.character = this.mainRef.current;
+        
+        // Females get thinner feet
+        if (this.props.isFemale === true) {
+            this.setState({
+                animOffsets: {
+                    leftLegPos: {x: 0, y: 380},
+                    rightLegPos: {x: 90, y: 380},
+                    leftArmPos: {x: 120, y: 185},
+                    rightArmPos: {x: -30, y: 185},
+                    legScale: 0.7
+                }
+            }, () => {
+                // Animate character
+                this.createBodyAnimations();
+            });
+        }
+        else {
+            this.setState({
+                animOffsets: {
+                    leftLegPos: {x: -10, y: 380},
+                    rightLegPos: {x: 100, y: 380},
+                    leftArmPos: {x: 130, y: 195},
+                    rightArmPos: {x: -40, y: 195},
+                    legScale: 1
+                }
+            }, () => {
+                // Animate character
+                this.createBodyAnimations();
+            });
+        }
+
         
     }
 
@@ -61,6 +83,8 @@ export default class Character extends Component {
         /*this.setState({
             settings: nextProps.settings 
         });*/
+
+       
     }
 
     componentDidUpdate() {
@@ -118,8 +142,8 @@ export default class Character extends Component {
             anims.push(SVG.select('.left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0).loop(true, true));
 
             // Legs
-            anims.push(SVG.select('.left-leg').animate(500).scale(this.legScale, 1.2, 0, 0).loop(true, true));
-            anims.push(SVG.select('.right-leg').animate(500).delay(500).scale(this.legScale, 1.2, 0, 0).loop(true, true));
+            anims.push(SVG.select('.left-leg').animate(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0).loop(true, true));
+            anims.push(SVG.select('.right-leg').animate(500).delay(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0).loop(true, true));
 
             // Body Shaking
             anims.push(SVG.select('.character-head').animate(500).dmove(0, 5).loop(true, true));
@@ -235,7 +259,7 @@ export default class Character extends Component {
 
                     <path className="head-main" d={this.props.settings.svg} style={{fill: this.props.settings.body.skinColor}} />
 
-                    {this.props.isFemale && <Cheeks headBounds={this.props.settings.headBounds} />}
+                    {this.props.isFemale === true && <Cheeks headBounds={this.props.settings.headBounds} />}
 
                     <Eyes eyeProps={this.props.settings.eye} bodyProps={this.props.settings.body} headBounds={this.props.settings.headBounds} isFemale={this.props.isFemale} />
                     <Eyebrows eyeProps={this.props.settings.eye} hairProps={this.props.settings.hair} headBounds={this.props.settings.headBounds} />
@@ -250,25 +274,25 @@ export default class Character extends Component {
                     <Hair hairProps={this.props.settings.hair} headBounds={this.props.settings.headBounds} />
                 </g>
 
-                <g className="left-leg" transform={`translate(${this.leftLegPos.x} ${this.leftLegPos.y}) scale(${this.legScale} 1)`}>
+                <g className="left-leg" transform={`translate(${this.state.animOffsets.leftLegPos.x} ${this.state.animOffsets.leftLegPos.y}) scale(${this.state.animOffsets.legScale} 1)`}>
                     <Leg elemId="left-leg-inner" bodyProps={this.props.settings.body}  />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>
                 </g>
-                <g className="right-leg" transform={`translate(${this.rightLegPos.x} ${this.rightLegPos.y}) scale(-${this.legScale} 1)`}>
+                <g className="right-leg" transform={`translate(${this.state.animOffsets.rightLegPos.x} ${this.state.animOffsets.rightLegPos.y}) scale(-${this.state.animOffsets.legScale} 1)`}>
                     <Leg elemId="right-leg-inner" bodyProps={this.props.settings.body}  />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>
                 </g>
                 
 
-                <g className="right-arm" transform={`translate(${this.leftArmPos.x} ${this.leftArmPos.y}) scale(-1 1)`}>
+                <g className="right-arm" transform={`translate(${this.state.animOffsets.leftArmPos.x} ${this.state.animOffsets.leftArmPos.y}) scale(-1 1)`}>
                     <Arm id="right-arm-inner" bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperArm}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerArm}}></g>
                 </g>
 
-                <g className="left-arm" transform={`translate(${this.rightArmPos.x} ${this.rightArmPos.y}) scale(1 1)`}>
+                <g className="left-arm" transform={`translate(${this.state.animOffsets.rightArmPos.x} ${this.state.animOffsets.rightArmPos.y}) scale(1 1)`}>
                     <Arm id="left-arm-inner" bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperArm}}></g>
                     <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerArm}}></g>

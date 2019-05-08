@@ -12,11 +12,14 @@ import hairShort04 from '../resources/hair/short04.svg';
 import hairVeryShort01 from '../resources/hair/very-short01.svg';
 
 import hairLong01 from '../resources/hair/long01.svg';
+import hairLong02 from '../resources/hair/long02.svg';
 
 export default class Hair extends Component {
 
     static STYLE_BALD = 'bald';
     static hairStyles = new Map();
+    static hairMen = new Map();
+    static hairWomen = new Map();
 
     constructor(props) {
         super(props);
@@ -26,17 +29,22 @@ export default class Hair extends Component {
             hairBackPath: ''
         };
 
-        Hair.hairStyles.set("bald", hairShort01);
-        Hair.hairStyles.set("bald01", hairBald01);
-        Hair.hairStyles.set("short01", hairShort01);
-        Hair.hairStyles.set("short01_side", hairShort01Side);
-        Hair.hairStyles.set("short02", hairShort02);
-        Hair.hairStyles.set("short03", hairShort03);
-        Hair.hairStyles.set("short04", hairShort04);
-        Hair.hairStyles.set("veryShort01", hairVeryShort01);
+    }
 
-        Hair.hairStyles.set("long01", hairLong01);
+    static init() {
+        Hair.hairMen.set("bald", hairShort01);
+        Hair.hairMen.set("bald01", hairBald01);
+        Hair.hairMen.set("short01", hairShort01);
+        Hair.hairMen.set("short01_side", hairShort01Side);
+        Hair.hairMen.set("short02", hairShort02);
+        Hair.hairMen.set("short03", hairShort03);
+        Hair.hairMen.set("short04", hairShort04);
+        Hair.hairMen.set("veryShort01", hairVeryShort01);
 
+        Hair.hairWomen.set("long01", hairLong01);
+        Hair.hairWomen.set("long02", hairLong02);
+
+        Hair.hairStyles = new Map([...Hair.hairMen, ...Hair.hairWomen]);
     }
 
     getHairPath() {

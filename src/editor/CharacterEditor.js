@@ -26,6 +26,7 @@ export default class CharacterEditor extends Component {
     constructor(props) {
         super(props);
 
+        World.init();
         Clothes.init();
         Hair.init();
 
@@ -352,6 +353,7 @@ export default class CharacterEditor extends Component {
             else if (prop.type === 'string') {
                 let keys = Array.from(prop.items.keys());
                 let randomKey = keys[Math.floor(Math.random() * keys.length)];
+                console.log(randomKey);
                 val = randomKey;
                 if (!val) 
                     val = prop.val;
@@ -364,14 +366,14 @@ export default class CharacterEditor extends Component {
             
         }
 
+        settings.zoom = this.state.zoom;
+        settings.sideView = this.state.sideView;
+        settings.isFemale = isFemale;
+
         // Build
         this.buildSVG(settings, false);
         this.buildClothesTop(settings, false);
         this.buildClothesLegs(settings, false);
-
-        settings.zoom = this.state.zoom;
-        settings.sideView = this.state.sideView;
-        settings.isFemale = isFemale;
 
         this.randomCharacterSettings = settings;
 

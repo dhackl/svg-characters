@@ -258,7 +258,7 @@ export default class CharacterProperties {
         cat: 'clothes',
         name: 'styleTop',
         type: 'string',
-        val: 'tshirt',
+        val: 'tshirt-women',
         items: Clothes.clothesTopWomen
     }, {
         cat: 'clothes',

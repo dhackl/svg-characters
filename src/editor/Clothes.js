@@ -30,23 +30,23 @@ export default class Clothes  {
 
     static init() {
         // Men
-        Clothes.clothesTopMen.set('naked', tshirtBasic);
+        //Clothes.clothesTopMen.set('naked', tshirtBasic);
         Clothes.clothesTopMen.set('tshirt', tshirtBasic);
         Clothes.clothesTopMen.set('shirt-white', shirtWhite);
         Clothes.clothesTopMen.set('tanktop01', tanktop01);
         Clothes.clothesTopMen.set('tanktop02', tanktop02);
         Clothes.clothesTopMen.set('suit01', suit01);
 
-        Clothes.clothesLegsMen.set('naked', tshirtBasic);
+        //Clothes.clothesLegsMen.set('naked', tshirtBasic);
         Clothes.clothesLegsMen.set('jeans', jeansBasic);
         Clothes.clothesLegsMen.set('shorts', shortsBasic);
         
 
         // Women
-        Clothes.clothesTopWomen.set('naked', tshirtWomen);
+        //Clothes.clothesTopWomen.set('naked', tshirtWomen);
         Clothes.clothesTopWomen.set('tshirt-women', tshirtWomen);
 
-        Clothes.clothesLegsWomen.set('naked', jeansBasic);        
+        //Clothes.clothesLegsWomen.set('naked', jeansBasic);        
         Clothes.clothesLegsWomen.set('jeans', jeansBasic);
         Clothes.clothesLegsWomen.set('shorts-women', shortsWomen);
     }

@@ -1,13 +1,7 @@
 import React, { Component } from 'react';
-import SVG from 'svg.js';
 import ColorUtils from './../util/ColorUtils';
 
 export default class Eyes extends Component {
-
-    constructor(props) {
-        super(props);
-
-    }
 
     componentDidMount() {
         //SVG.get('eye-lid').animate(100).attr({ d: this.buildEyeLid(1) }).loop(true, true);

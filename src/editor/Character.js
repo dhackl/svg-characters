@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import SVG from 'svg.js';
 
 import './CharacterEditor.css';
-import Point from '../util/Point';
 import Rectangle from '../util/Rectangle';
 import ColorUtils from '../util/ColorUtils';
 import Eyes from './Eyes';
@@ -36,6 +35,16 @@ export default class Character extends Component {
                 leftArmPos: {x: 0, y: 0},
                 rightArmPos: {x: 0, y: 0},
                 legScale: 1
+            },
+
+            svg: '',
+            headBounds: new Rectangle(),
+            clothes: {
+                clothUpperArm: '',
+                clothLowerArm: '',
+                clothTorso: '',
+                clothUpperLeg: '',
+                clothLowerLeg: ''
             }
         };
 
@@ -76,16 +85,14 @@ export default class Character extends Component {
                 this.createBodyAnimations();
             });
         }
+    }
 
-        
+    componentWillMount() {
+        this.rebuild(this.props);
     }
 
     componentWillReceiveProps(nextProps) {
-        /*this.setState({
-            settings: nextProps.settings 
-        });*/
-
-       
+        this.rebuild(nextProps);
     }
 
     componentDidUpdate() {
@@ -96,6 +103,101 @@ export default class Character extends Component {
             SVG.select(`#${this.props.id} .neck-group`).before(SVG.select(`#${this.props.id} .hair-back`).first());
         }
         //SVG.select(`#${this.props.id} .torso-outer`).before(SVG.select(`#${this.props.id} .lower-arm-group`).first());
+    }
+
+
+    rebuild(props) {
+        // ===== Build Head
+        var right = 60 + props.settings.head.width;
+        var left = 40 - props.settings.head.width;
+        var top = 60 - props.settings.head.height;
+        var bottom = 60 + props.settings.head.height;
+
+        var s = props.settings.head.roundnessTop;
+        var t = props.settings.head.roundnessBottom;
+
+        var pathStr = `
+        M ${right} 50 
+        C ${right} ${right - t} ${right - t} ${bottom} 50 ${bottom}
+          ${left + t} ${bottom} ${left} ${right - t} ${left} 50 
+          ${left} ${left + s} ${left + s} ${top} 50 ${top}
+          ${right - s} ${top} ${right} ${left + s} ${right} 50 Z
+        `;
+
+        this.setState({
+            svg: pathStr,
+            headBounds: new Rectangle(left, top, right - left, bottom - top)
+        });
+
+        // ===== Build clothes top
+        var nakedTop = false;
+        let clothes = this.state.clothes;
+
+        // If naked -> return empty path
+        if (props.settings.clothes.styleTop === Clothes.STYLE_NAKED) {    
+            clothes.clothUpperArm = '';
+            clothes.clothLowerArm = '';
+            clothes.clothTorso = '';
+            nakedTop = true;
+        }
+
+        // Otherwise -> load clothes
+        Clothes.getClothesTop(props.settings.isFemale, props.settings.clothes.styleTop).then(text => {
+            if (nakedTop === false) {
+                var parser = new DOMParser();
+
+                // Substitute colors
+                text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), props.settings.clothes.colorTop);
+                text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(props.settings.clothes.colorTop, '#000000', 0.3));
+
+                var doc = parser.parseFromString(text, "image/svg+xml");
+                let upperArm = doc.getElementById('upper-arm');
+                let lowerArm = doc.getElementById('lower-arm');
+                let torso = doc.getElementById('torso');
+
+                //if (torso != null)
+                //    torso.removeAttribute('id');
+                
+                clothes.clothUpperArm = upperArm != null ? upperArm.outerHTML : '';
+                clothes.clothLowerArm = lowerArm != null ? lowerArm.outerHTML : '';
+                clothes.clothTorso = torso != null ? torso.outerHTML : '';
+            }
+            
+            this.setState({
+                clothes: clothes
+            });
+        });
+
+        // ===== Build clothes legs
+        var nakedLegs = false;
+        // If naked -> return empty path
+        if (props.settings.clothes.styleLegs === Clothes.STYLE_NAKED) {
+            clothes.clothUpperLeg = '';
+            clothes.clothLowerLeg = '';
+            nakedLegs = true;
+        }
+
+        // Otherwise -> load clothes
+        Clothes.getClothesLegs(props.settings.isFemale, props.settings.clothes.styleLegs).then(text => {
+            if (nakedLegs === false) {
+                var parser = new DOMParser();
+
+                // Substitute colors
+                text = text.replace(new RegExp(Clothes.COLOR_PRIMARY, 'g'), props.settings.clothes.colorLegs);
+                text = text.replace(new RegExp(Clothes.COLOR_PRIMARY_DARK, 'g'), ColorUtils.blend(props.settings.clothes.colorLegs, '#000000', 0.3));
+
+                var doc = parser.parseFromString(text, "image/svg+xml");
+                let upperLeg = doc.getElementById('upper-leg');
+                let lowerLeg = doc.getElementById('lower-leg');
+                
+                clothes.clothUpperLeg = upperLeg != null ? upperLeg.outerHTML : '';
+                clothes.clothLowerLeg = lowerLeg != null ? lowerLeg.outerHTML : '';
+            }
+            
+            this.setState({
+                clothes: clothes
+            });
+        });
     }
 
     updateSideView() {
@@ -193,7 +295,7 @@ export default class Character extends Component {
         }
     }
 
-    move(direction) {
+    /*move(direction) {
         var step = 300;
         var duration = 1000;
 
@@ -215,12 +317,35 @@ export default class Character extends Component {
         }
         
         //this.createBodyAnimations();
+    }*/
+    move(direction) {
+        var step = 8;
+        var duration = 1000;
+
+        //SVG.get(this.props.id).dmove(step * direction.x, step * direction.y);
+        
+        if (direction !== this.state.direction) {
+            var prevDirection = this.state.direction;
+            if (prevDirection.x === 0) prevDirection.x = 1;
+            this.setState({
+                direction: direction
+            }, () => {
+                this.changeDirection(prevDirection);
+            });
+        }
+        
+        //this.createBodyAnimations();
     }
+
 
     stopMoving() {
         if (this.playerAnimation)
             this.playerAnimation.stop(false, true);
         //this.stopBodyAnimation();
+    }
+
+    moveTo(x, y) {
+        SVG.get(this.props.id).move(x, y);
     }
 
     moveBy(x, y) {
@@ -281,7 +406,6 @@ export default class Character extends Component {
     }
 
     render() {
-        
         return (
             <g id={this.props.id} ref={this.mainRef} transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
                 <g className="character-inner">
@@ -305,52 +429,52 @@ export default class Character extends Component {
                     </defs>
 
                     <g className="character-head">
-                        <Neck neckProps={this.props.settings.neck} headBounds={this.props.settings.headBounds} id={this.props.id} />
+                        <Neck neckProps={this.props.settings.neck} headBounds={this.state.headBounds} id={this.props.id} />
 
-                        <path className="head-main" d={this.props.settings.svg} style={{fill: this.props.settings.body.skinColor}} />
+                        <path className="head-main" d={this.state.svg} style={{fill: this.props.settings.body.skinColor}} />
 
                         <g className="character-face">
-                            {this.props.isFemale === true && <Cheeks headBounds={this.props.settings.headBounds} />}
+                            {this.props.isFemale === true && <Cheeks headBounds={this.state.headBounds} />}
 
-                            <Eyes eyeProps={this.props.settings.eye} bodyProps={this.props.settings.body} headBounds={this.props.settings.headBounds} isFemale={this.props.isFemale} />
-                            <Eyebrows eyeProps={this.props.settings.eye} hairProps={this.props.settings.hair} headBounds={this.props.settings.headBounds} />
+                            <Eyes eyeProps={this.props.settings.eye} bodyProps={this.props.settings.body} headBounds={this.state.headBounds} isFemale={this.props.isFemale} />
+                            <Eyebrows eyeProps={this.props.settings.eye} hairProps={this.props.settings.hair} headBounds={this.state.headBounds} />
 
-                            <Mouth mouthProps={this.props.settings.mouth} headBounds={this.props.settings.headBounds} isFemale={this.props.isFemale} />
-                            <Nose noseProps={this.props.settings.nose} bodyProps={this.props.settings.body} headBounds={this.props.settings.headBounds} />
+                            <Mouth mouthProps={this.props.settings.mouth} headBounds={this.state.headBounds} isFemale={this.props.isFemale} />
+                            <Nose noseProps={this.props.settings.nose} bodyProps={this.props.settings.body} headBounds={this.state.headBounds} />
                         </g>
 
-                        <Ears earProps={this.props.settings.ear} bodyProps={this.props.settings.body} headBounds={this.props.settings.headBounds} />
+                        <Ears earProps={this.props.settings.ear} bodyProps={this.props.settings.body} headBounds={this.state.headBounds} />
 
-                        <Hair hairProps={this.props.settings.hair} headBounds={this.props.settings.headBounds} />
+                        <Hair hairProps={this.props.settings.hair} headBounds={this.state.headBounds} />
                     </g>
 
                     <g className="left-leg" transform={`translate(${this.state.animOffsets.leftLegPos.x} ${this.state.animOffsets.leftLegPos.y}) scale(${this.state.animOffsets.legScale} 1)`}>
                         <Leg elemId="left-leg-inner" bodyProps={this.props.settings.body}  />
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
                     </g>
                     <g className="right-leg" transform={`translate(${this.state.animOffsets.rightLegPos.x} ${this.state.animOffsets.rightLegPos.y}) scale(-${this.state.animOffsets.legScale} 1)`}>
                         <Leg elemId="right-leg-inner" bodyProps={this.props.settings.body}  />
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperLeg}}></g>
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerLeg}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperLeg}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerLeg}}></g>
                     </g>
                     
 
                     <g className="right-arm" transform={`translate(${this.state.animOffsets.leftArmPos.x} ${this.state.animOffsets.leftArmPos.y}) scale(-1 1)`}>
                         <Arm id="right-arm-inner" bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperArm}}></g>
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerArm}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
                     </g>
 
                     <g className="left-arm" transform={`translate(${this.state.animOffsets.rightArmPos.x} ${this.state.animOffsets.rightArmPos.y}) scale(1 1)`}>
                         <Arm id="left-arm-inner" bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothUpperArm}}></g>
-                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothLowerArm}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothUpperArm}}></g>
+                        <g transform="translate(0 -40)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothLowerArm}}></g>
                     </g>
 
                     <g className="torso-outer">
                         <Torso bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
-                        <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.props.settings.clothes.clothTorso}}></g>
+                        <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
                     </g>
 
                     <rect x="-40" y="550" width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />

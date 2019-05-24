@@ -1,8 +1,3 @@
-import React, { Component } from 'react';
-import SVG from 'svg.js';
-import ColorUtils from './../util/ColorUtils';
-import Point from '../util/Point';
-
 import tshirtBasic from '../resources/clothes/tshirt-basic.svg';
 import shirtWhite from '../resources/clothes/shirt-white.svg';
 import tanktop01 from '../resources/clothes/tanktop01.svg';

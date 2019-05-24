@@ -1,16 +1,11 @@
 import React, { Component } from 'react';
-import ColorUtils from './../util/ColorUtils';
 
 export default class Leg extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         //let width = this.props.noseProps.width * 0.1;
         //let height = this.props.noseProps.height * 0.1;
-        let values = this.props.elemId === 'left-leg' ? '3.5 3.5;3.5 3.9;3.5 3.5' : '-3.5 3.9;-3.5 3.5;-3.5 3.9';
+        //let values = this.props.elemId === 'left-leg' ? '3.5 3.5;3.5 3.9;3.5 3.5' : '-3.5 3.9;-3.5 3.5;-3.5 3.9';
 
         return (
             <g id={this.props.elemId}>
@@ -24,10 +19,6 @@ export default class Leg extends Component {
 }
 
 class UpperLeg extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     buildUpperLeg() {
         var pathStr = `
@@ -62,10 +53,6 @@ class UpperLeg extends Component {
 
 class LowerLeg extends Component {
 
-    constructor(props) {
-        super(props);
-    }
-
     buildLeg() {
         var pathStr = `
         m 0 0 
@@ -97,10 +84,6 @@ class LowerLeg extends Component {
 }
 
 class Foot extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     buildFoot() {
         var pathStr = `

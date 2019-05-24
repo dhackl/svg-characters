@@ -1,11 +1,6 @@
 import React, { Component } from 'react';
-import ColorUtils from './../util/ColorUtils';
 
 export default class Arm extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         //let width = this.props.noseProps.width * 0.1;
@@ -21,10 +16,6 @@ export default class Arm extends Component {
 }
 
 class UpperArm extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     buildShoulder() {
         var pathStr = `
@@ -75,7 +66,7 @@ class UpperArm extends Component {
         //let width = this.props.noseProps.width * 0.1;
         //let height = this.props.noseProps.height * 0.1;
         
-        let offsetX = this.props.bodyProps.direction == 1 ? 10 : 0;
+        //let offsetX = this.props.bodyProps.direction == 1 ? 10 : 0;
 
         let rotation = this.props.isFemale === true ? 20 : 20;
 
@@ -90,10 +81,6 @@ class UpperArm extends Component {
 }
 
 class LowerArm extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     buildArm() {
         /*var pathStr = `
@@ -133,10 +120,6 @@ class LowerArm extends Component {
 }
 
 class Hand extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     buildHand() {
         var pathStr = `

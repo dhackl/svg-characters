@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import SVG from 'svg.js';
-import ColorUtils from './../util/ColorUtils';
 import Point from '../util/Point';
 
 import hairBald01 from '../resources/hair/bald01.svg';
@@ -80,9 +78,9 @@ export default class Hair extends Component {
     }
 
     buildRandomHair() {
-        let top = this.props.headBounds.top();
+        /*let top = this.props.headBounds.top();
         let left = this.props.headBounds.left();
-        let right = this.props.headBounds.right();
+        let right = this.props.headBounds.right();*/
         let width = this.props.headBounds.width;
 
         let points = [];

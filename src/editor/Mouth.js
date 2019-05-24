@@ -2,11 +2,6 @@ import React, { Component } from 'react';
 
 export default class Mouth extends Component {
 
-    constructor(props) {
-        super(props);
-
-    }
-
     buildSVG() {
         var pathStr = `
             m 0,0 

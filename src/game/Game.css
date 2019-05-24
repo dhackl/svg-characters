@@ -1,0 +1,13 @@
+body {
+    overflow: hidden;
+}
+
+#game-panel {
+    width: 100%;
+    float: left;
+    text-align: left;
+}
+#game-svg {
+    height: 2000px;
+    width: 2000px;
+}

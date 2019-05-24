@@ -67,9 +67,9 @@ export default class World extends Component {
 
     componentDidUpdate() {
         // Put player on spawn point
-        SVG.get('player1').move(this.state.spawnPoint.x, this.state.spawnPoint.y);
+        //SVG.get('player1').move(this.state.spawnPoint.x, this.state.spawnPoint.y);
 
-        SVG.get('player2').move(300, 200);
+        //SVG.get('player2').move(300, 200);
     }
 
     handleCollisions(player) {

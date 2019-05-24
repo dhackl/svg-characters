@@ -86,7 +86,6 @@ export default class CharacterEditor extends Component {
         };
 
         this.buildSVG = this.buildSVG.bind(this);
-        this.toggleSideView = this.toggleSideView.bind(this);
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -116,57 +115,6 @@ export default class CharacterEditor extends Component {
 
     componentWillMount() {
         this.randomizeCharacter();
-    }
-
-    transformSidePose() {
-        
-    }
-
-    toggleSideView() {
-        this.setState({
-            sideView: !this.state.sideView
-        }, () => {
-            if (this.state.sideView) {
-                // Face
-                SVG.select('.left-eye').dmove(30, 0);
-                SVG.select('.left-brow').dmove(6, 0);
-                SVG.select('.right-eye').dmove(-30, 0).scale(0.8, 1);
-                SVG.select('.right-brow').dmove(-6, 0);
-
-                SVG.select('.right-ear').hide();
-
-                SVG.select('.nose-group').dmove(35, 0);
-                SVG.select('.mouth-group').dmove(35, 0);
-
-                // Arms
-                //SVG.get('left-arm').dmove(20, 0);
-                SVG.select('.right-arm').dmove(10, 0).scale(-1, 1).rotate(-20).back();
-
-                var tempState = this.state;
-                tempState.hair.hairStyle += '_side';
-                this.setState(tempState);
-            }
-            else {
-                // Face
-                SVG.select('.left-eye').dmove(-30, 0);
-                SVG.select('.left-brow').dmove(-6, 0);
-                SVG.select('.right-eye').scale(1, 1).dmove(30, 0);
-                SVG.select('.right-brow').dmove(6, 0);
-
-                SVG.select('.right-ear').show();
-
-                SVG.select('.nose-group').dmove(-35, 0);
-                SVG.select('.mouth-group').dmove(-35, 0);
-
-                // Arms
-                //SVG.get('left-arm').dmove(20, 0);
-                SVG.select('.right-arm').rotate(20).scale(-1, 1).dmove(-10, 0).front();
-
-                var tempState = this.state;
-                tempState.hair.hairStyle = this.state.hair.hairStyle.substring(0, this.state.hair.hairStyle.length - 5);
-                this.setState(tempState);
-            }
-        });
     }
 
     initProps() {
@@ -440,7 +388,6 @@ export default class CharacterEditor extends Component {
         return (
             <div id="character-editor">
                 <div id="character-toolbar">
-                    <button className="btn-toolbar" onClick={this.toggleSideView}>Toggle Side View</button>
                     <button className="btn-toolbar" onClick={this.randomizeCharacter}>Randomize</button>
                 </div>
                 <div id="character-props">

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import SVG from 'svg.js';
 
-import './CharacterEditor.css';
+import './Character.css';
 import Rectangle from '../util/Rectangle';
 import ColorUtils from '../util/ColorUtils';
 import Eyes from './Eyes';
@@ -45,16 +45,15 @@ export default class Character extends Component {
                 clothTorso: '',
                 clothUpperLeg: '',
                 clothLowerLeg: ''
-            }
-        };
+            },
 
-        this.mainRef = React.createRef();
+            chatMessage: '',
+
+            mainRef: React.createRef()
+        };
     }
 
     componentDidMount() {
-        //this.buildHead();
-
-        this.character = this.mainRef.current;
         
         // Females get thinner feet
         if (this.props.isFemale === true) {
@@ -126,7 +125,8 @@ export default class Character extends Component {
 
         this.setState({
             svg: pathStr,
-            headBounds: new Rectangle(left, top, right - left, bottom - top)
+            headBounds: new Rectangle(left, top, right - left, bottom - top),
+            mainRef: React.createRef()
         });
 
         // ===== Build clothes top
@@ -339,13 +339,14 @@ export default class Character extends Component {
 
 
     stopMoving() {
-        if (this.playerAnimation)
-            this.playerAnimation.stop(false, true);
+        /*if (this.playerAnimation)
+            this.playerAnimation.stop(false, true);*/
         //this.stopBodyAnimation();
     }
 
     moveTo(x, y) {
-        SVG.get(this.props.id).move(x, y);
+        //SVG.get(this.props.id).move(x, y);
+        SVG.adopt(this.state.mainRef.current).move(x, y);
     }
 
     moveBy(x, y) {
@@ -379,6 +380,12 @@ export default class Character extends Component {
         
     }
 
+    setChatMessage(msg) {
+        this.setState({
+            chatMessage: msg
+        });
+    }
+
     startBlinkAnimation() {
 
     }
@@ -407,7 +414,7 @@ export default class Character extends Component {
 
     render() {
         return (
-            <g id={this.props.id} ref={this.mainRef} transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
+            <g id={this.props.id} ref={this.state.mainRef} transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
                 <g className="character-inner">
                     <defs>
                         <linearGradient id="mouth-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -479,6 +486,7 @@ export default class Character extends Component {
 
                     <rect x="-40" y="550" width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />
                 </g>
+                <text className="player-chat-message" x="0" y="-50">{this.state.chatMessage}</text>
             </g>
         );
     }

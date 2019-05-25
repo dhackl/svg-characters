@@ -36,7 +36,8 @@ io.on('connection', function(socket) {
     socket.on('new-player', data => {
         players[socket.id] = {
             x: 300,
-            y: 100
+            y: 100,
+            direction: {x: 0, y: 1}
         };
         playerData[socket.id] = {
             characterProps: data.characterProps
@@ -47,10 +48,12 @@ io.on('connection', function(socket) {
 
     // Update player movements
     socket.on('movement', data => {
-        var player = players[socket.id] || {};
+        var player = players[socket.id] || { x: 0, y: 0, direction: {} };
         var step = 8;
         player.x += data.x * step;
         player.y += data.y * step;
+        player.direction.x = data.x;
+        player.direction.y = data.y;
     });
 
     // Remove disconnected players
@@ -59,6 +62,14 @@ io.on('connection', function(socket) {
         delete playerData[socket.id];
 
         io.sockets.emit('update-player-data', playerData);
+    });
+
+    // Chat
+    socket.on('chat-in', data => {
+        io.sockets.emit('chat-out', {
+            sender: socket.id,
+            message: data.message
+        });
     });
 });
 

@@ -11,3 +11,9 @@ body {
     height: 2000px;
     width: 2000px;
 }
+
+#chat-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+}

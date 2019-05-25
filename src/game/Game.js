@@ -32,10 +32,14 @@ export default class Game extends Component {
             if (this.state.inPlayMode === true) {
                 for (var id in players) {
                     var player = players[id];
-                    var playerSvg = SVG.get('c-' + id);
+                    /*var playerSvg = SVG.get('c-' + id);
                     if (playerSvg)
-                        playerSvg.move(player.x, player.y);
-                    //this.getCharacterById(id).moveTo(player.x, player.y);
+                        playerSvg.move(player.x, player.y);*/
+                    var character = this.getCharacterById('c-' + id);
+                    if (character) {
+                        character.moveTo(player.x, player.y);
+                        character.move(player.direction);
+                    }
                 }
             }
         });
@@ -56,6 +60,12 @@ export default class Game extends Component {
             this.setState({
                 characters: characters
             });
+        });
+
+        // Listen for incoming chat messages
+        socket.on('chat-out', data => {
+            var senderCharacter = this.getCharacterById('c-' + data.sender);
+            senderCharacter.setChatMessage(data.message);
         });
     }
 
@@ -100,12 +110,14 @@ export default class Game extends Component {
     }
 
     handleKeyUp() {
-        var player = this.getCharacterById(this.myPlayerId);
-        player.stopMoving();
+
     }
 
     getCharacterById(id) {
-        return this.state.characters.find(character => character.id === id).ref.current;
+        var character = this.state.characters.find(character => character.id === id);
+        if (character)
+            return character.ref.current;
+        return null;
     }
 
     update(delta) {        
@@ -116,6 +128,8 @@ export default class Game extends Component {
 
         //setInterval(this.update, 33);
     }
+
+    
 
     render() {
         return(
@@ -132,8 +146,49 @@ export default class Game extends Component {
                                 )}
                             </World>
                         </svg>
+                        <ChatBox />
                     </div>
                 }
+            </div>
+        );
+    }
+}
+
+class ChatBox extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            message: ''
+        };
+
+        this.handleChatChanged = this.handleChatChanged.bind(this);
+        this.sendChatMessage = this.sendChatMessage.bind(this);
+    }
+
+    handleChatChanged(ev) {
+        this.setState({
+            message: ev.target.value
+        });
+    }
+
+    sendChatMessage() {
+        if (this.state.message.length > 0) {
+            socket.emit('chat-in', {
+                message: this.state.message
+            });
+            this.setState({
+                message: ''
+            });
+        }
+    }
+
+    render() {
+        return (
+            <div id="chat-panel">
+                <input className="chat-input" onChange={this.handleChatChanged} value={this.state.message} />
+                <button onClick={this.sendChatMessage}>Send</button>
             </div>
         );
     }

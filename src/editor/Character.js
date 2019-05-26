@@ -324,7 +324,7 @@ export default class Character extends Component {
 
         //SVG.get(this.props.id).dmove(step * direction.x, step * direction.y);
         
-        if (direction !== this.state.direction) {
+        if (direction.x !== this.state.direction.x || direction.y !== this.state.direction.y) {
             var prevDirection = this.state.direction;
             if (prevDirection.x === 0) prevDirection.x = 1;
             this.setState({

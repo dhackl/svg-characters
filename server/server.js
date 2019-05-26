@@ -3,11 +3,16 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var socketIO = require('socket.io');
+var fs = require('fs');
+var svgson = require('svgson');
 var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
 
+var Collision = require('./framework/Collision');
+
 const PORT = 5080;
+const SYNC_INTERVAL = 30; // FPS
 
 app.set('port', PORT);
 app.use('/static', express.static(__dirname + '/static'));
@@ -20,11 +25,6 @@ app.get('/', function(request, response) {
 // Starts the server.
 server.listen(PORT, function() {
     console.log('Starting server on port ' + PORT);
-});
-
-// Add the WebSocket handlers
-io.on('connection', function(socket) {
-
 });
 
 // Handle Players
@@ -54,6 +54,9 @@ io.on('connection', function(socket) {
         player.y += data.y * step;
         player.direction.x = data.x;
         player.direction.y = data.y;
+
+        // Handle collisions server-side
+        Collision.handleCollision(player, world);
     });
 
     // Remove disconnected players
@@ -76,4 +79,27 @@ io.on('connection', function(socket) {
 // Update game state for all connected players
 setInterval(function() {
     io.sockets.emit('state', players);
-}, 1000 / 60);
+}, 1000 / SYNC_INTERVAL);
+
+
+// Load world
+var world = {
+    colliders: [],
+    spawnPoint: {x: 0, y: 0}
+};
+fs.readFile('../src/resources/world/map01.svg', (err, data) => {
+    svgson.parse(data.toString()).then(json => {
+        
+        // Colliders
+        var collisions = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'map-collision');
+        for (var i = 0; i < collisions.children.length; i++) {
+            world.colliders.push(collisions.children[i]);
+        }
+
+        // Spawn Point
+        var spawn = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'spawn');
+        world.spawnPoint.x = Number(spawn.attributes['x']);
+        world.spawnPoint.y = Number(spawn.attributes['y']);
+
+    });
+});

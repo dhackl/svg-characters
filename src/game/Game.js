@@ -22,10 +22,20 @@ export default class Game extends Component {
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
-        this.update = this.update.bind(this);
         this.connectToServer = this.connectToServer.bind(this);
 
         this.worldRef = React.createRef();
+        this.gameViewRef = React.createRef();
+
+        this.camera = {
+            SCROLL_POS_RIGHT: 1000,
+            SCROLL_POS_LEFT: 800,
+            SCROLL_POS_UP: 300,
+            SCROLL_POS_DOWN: 600,
+
+            position: {x: 0, y: 0},
+            zoom: 1.0
+        };
 
         // Update player position etc.
         socket.on('state', players => {
@@ -39,6 +49,27 @@ export default class Game extends Component {
                     if (character) {
                         character.moveTo(player.x, player.y);
                         character.move(player.direction);
+                    }
+
+                    // Move camera for my player
+                    if (this.myPlayerId === 'c-' + id) {
+                        
+                        var relativePlayerX = player.x + this.camera.position.x;
+                        var relativePlayerY = player.y + this.camera.position.y;
+
+                        // Scrolling in X
+                        if (relativePlayerX > this.camera.SCROLL_POS_RIGHT)
+                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_RIGHT, -4000, 0));
+                        else if (relativePlayerX < this.camera.SCROLL_POS_LEFT)
+                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_LEFT, -4000, 0));
+                        // Scrolling in Y
+                        if (relativePlayerY > this.camera.SCROLL_POS_DOWN)
+                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_DOWN, -4000, 0));
+                        else if (relativePlayerY < this.camera.SCROLL_POS_UP)
+                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_UP, -4000, 0));
+            
+
+                        this.gameViewSvg.translate(this.camera.position.x, this.camera.position.y);
                     }
                 }
             }
@@ -67,6 +98,10 @@ export default class Game extends Component {
             var senderCharacter = this.getCharacterById('c-' + data.sender);
             senderCharacter.setChatMessage(data.message);
         });
+    }
+
+    componentDidUpdate() {
+        this.gameViewSvg = SVG.adopt(this.gameViewRef.current);
     }
 
     connectToServer(characterProps) {
@@ -105,8 +140,8 @@ export default class Game extends Component {
         player.move(direction);
         socket.emit('movement', direction);
 
-        var world = this.worldRef.current;
-        world.handleCollisions(player);
+        /*var world = this.worldRef.current;
+        world.handleCollisions(player);*/
     }
 
     handleKeyUp() {
@@ -120,17 +155,6 @@ export default class Game extends Component {
         return null;
     }
 
-    update(delta) {        
-        // Check for collision (TODO: move to a different/better location !!) 
-        var player = SVG.get(this.myPlayerId);
-        var world = this.worldRef.current;
-        world.handleCollisions(player);
-
-        //setInterval(this.update, 33);
-    }
-
-    
-
     render() {
         return(
             <div id="game-outer">
@@ -139,7 +163,7 @@ export default class Game extends Component {
                 }
                 {this.state.inPlayMode === true && 
                     <div id="game-panel" onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp} tabIndex="0">
-                        <svg id="game-svg">
+                        <svg id="game-svg" ref={this.gameViewRef}>
                             <World ref={this.worldRef}>
                                 {this.state.characters.map(character => 
                                     <Character id={character.id} isFemale={character.settings.isFemale} settings={character.settings} ref={character.ref} key={'character' + character.id} />

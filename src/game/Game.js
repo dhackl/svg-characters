@@ -27,6 +27,9 @@ export default class Game extends Component {
         this.worldRef = React.createRef();
         this.gameViewRef = React.createRef();
 
+        this.myPlayerId = '';
+        this.currentWorldId = 'map01';
+
         this.camera = {
             SCROLL_POS_RIGHT: 1000,
             SCROLL_POS_LEFT: 800,
@@ -47,8 +50,17 @@ export default class Game extends Component {
                         playerSvg.move(player.x, player.y);*/
                     var character = this.getCharacterById('c-' + id);
                     if (character) {
-                        character.moveTo(player.x, player.y);
-                        character.move(player.direction);
+                        var prevPosition = {x: 0, y: 0};
+                        var hasMoved = character.moveTo(player.x, player.y, prevPosition);
+                        character.move(player.direction, prevPosition);
+
+                        // Depth calculation
+                        if (hasMoved) {
+                            var world = this.worldRef.current;
+                            var characterSvg = SVG.get('c-' + id);
+                            if (characterSvg)
+                                world.setCharacterDepth(characterSvg);
+                        }
                     }
 
                     // Move camera for my player
@@ -59,14 +71,14 @@ export default class Game extends Component {
 
                         // Scrolling in X
                         if (relativePlayerX > this.camera.SCROLL_POS_RIGHT)
-                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_RIGHT, -4000, 0));
+                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_RIGHT, -4000), 0);
                         else if (relativePlayerX < this.camera.SCROLL_POS_LEFT)
-                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_LEFT, -4000, 0));
+                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_LEFT, -4000), 0);
                         // Scrolling in Y
                         if (relativePlayerY > this.camera.SCROLL_POS_DOWN)
-                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_DOWN, -4000, 0));
+                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_DOWN, -4000), 0);
                         else if (relativePlayerY < this.camera.SCROLL_POS_UP)
-                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_UP, -4000, 0));
+                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_UP, -4000), 0);
             
 
                         this.gameViewSvg.translate(this.camera.position.x, this.camera.position.y);
@@ -80,18 +92,29 @@ export default class Game extends Component {
             var characters = [];
 
             for (var id in playerData) {
-                var player = playerData[id];
-                characters.push({
-                    id: 'c-' + id,
-                    settings: player.characterProps,
-                    ref: React.createRef()
-                });
+                var pData = playerData[id];
+
+                // Load all character which are in my world
+                if (pData.currentWorld === this.currentWorldId) {
+                    characters.push({
+                        id: 'c-' + id,
+                        settings: pData.characterProps,
+                        ref: React.createRef()
+                    });
+                }
             }
 
             this.setState({
                 characters: characters
             });
         });
+
+        // Player has changed world -> load the new world
+        socket.on('world-change', data => {
+            this.currentWorldId = data.worldId;
+            var world = this.worldRef.current;
+            world.loadWorld(data.worldId);
+        })
 
         // Listen for incoming chat messages
         socket.on('chat-out', data => {
@@ -120,8 +143,10 @@ export default class Game extends Component {
     }
 
     handleKeyDown(ev) {
-        var xDir = 0, yDir = 0;
+        if (!this.state.inPlayMode)
+            return;
 
+        var xDir = 0, yDir = 0;
         if (ev.key === 'ArrowLeft') {
             xDir = -1;
         }
@@ -139,13 +164,11 @@ export default class Game extends Component {
         var direction = {x: xDir, y: yDir};
         player.move(direction);
         socket.emit('movement', direction);
-
-        /*var world = this.worldRef.current;
-        world.handleCollisions(player);*/
     }
 
     handleKeyUp() {
-
+        var player = this.getCharacterById(this.myPlayerId);
+        player.stopMoving();
     }
 
     getCharacterById(id) {
@@ -156,6 +179,14 @@ export default class Game extends Component {
     }
 
     render() {
+        // Rearrange characters before render to prevent React fail
+        for (var i = 0; i < this.state.characters.length; i++) {
+            var char = this.state.characters[i];
+            var charSvg = SVG.get(char.id);
+            if (charSvg)
+                SVG.get('collision-visualization').after(charSvg);
+        }
+
         return(
             <div id="game-outer">
                 {this.state.inPlayMode === false &&
@@ -166,7 +197,7 @@ export default class Game extends Component {
                         <svg id="game-svg" ref={this.gameViewRef}>
                             <World ref={this.worldRef}>
                                 {this.state.characters.map(character => 
-                                    <Character id={character.id} isFemale={character.settings.isFemale} settings={character.settings} ref={character.ref} key={'character' + character.id} />
+                                    <Character id={character.id} isFemale={character.settings.body.isFemale} settings={character.settings} ref={character.ref} key={'character' + character.id} />
                                 )}
                             </World>
                         </svg>
@@ -197,10 +228,14 @@ class ChatBox extends Component {
         });
     }
 
-    sendChatMessage() {
-        if (this.state.message.length > 0) {
+    sendChatMessage(ev) {
+        ev.preventDefault();
+
+        var message = this.state.message;
+
+        if (message.length > 0) {
             socket.emit('chat-in', {
-                message: this.state.message
+                message: message
             });
             this.setState({
                 message: ''
@@ -211,8 +246,10 @@ class ChatBox extends Component {
     render() {
         return (
             <div id="chat-panel">
-                <input className="chat-input" onChange={this.handleChatChanged} value={this.state.message} />
-                <button onClick={this.sendChatMessage}>Send</button>
+                <form onSubmit={this.sendChatMessage}>
+                    <input className="chat-input" onChange={this.handleChatChanged} value={this.state.message} />
+                    <button>Send</button>
+                </form>
             </div>
         );
     }

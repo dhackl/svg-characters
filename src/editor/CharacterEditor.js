@@ -20,6 +20,7 @@ export default class CharacterEditor extends Component {
 
         this.state = {
             body: {
+                isFemale: false,
                 direction: 0,
                 skinColor: '#f3bf85',
                 fat: 5,
@@ -62,20 +63,13 @@ export default class CharacterEditor extends Component {
                 styleLegs: 'jeans',
                 colorLegs: '#20243c'
             },
-            zoom: 1.0,
-            sideView: false,
-            isFemale: false
+            name: ''
         };
 
         this.randomizeCharacter = this.randomizeCharacter.bind(this);
+        this.handleNameChange = this.handleNameChange.bind(this);
         this.finish = this.finish.bind(this);
 
-    }
-
-    componentDidMount() {
-        /*this.buildSVG(this.state, true);
-        this.buildClothesTop(this.state, true);
-        this.buildClothesLegs(this.state, true);*/
     }
 
     componentWillMount() {
@@ -92,6 +86,10 @@ export default class CharacterEditor extends Component {
         state[bodyPart] = bodyPart;
         this.setState(state);
         
+        /*if (prop.name === 'isFemale') {
+            this.setProp({cat: 'hair', name: 'hairStyle'}, val === true ? Hair.hairWomen.values().next().value : Hair.hairMen.values().next().value);
+        }*/
+        
         /*this.buildSVG(this.state, true);
 
         if (prop.cat === 'clothes') {
@@ -103,7 +101,11 @@ export default class CharacterEditor extends Component {
 
     }
 
-    
+    handleNameChange(ev) {
+        this.setState({
+            name: ev.target.value
+        });
+    }
 
     groupByArray(xs, key) { 
         return xs.reduce(function (rv, x) { 
@@ -143,7 +145,6 @@ export default class CharacterEditor extends Component {
             else if (prop.type === 'string') {
                 let keys = Array.from(prop.items.keys());
                 let randomKey = keys[Math.floor(Math.random() * keys.length)];
-                console.log(randomKey);
                 val = randomKey;
                 if (!val) 
                     val = prop.val;
@@ -156,21 +157,9 @@ export default class CharacterEditor extends Component {
             
         }
 
-        settings.zoom = this.state.zoom;
-        settings.sideView = this.state.sideView;
-        settings.isFemale = isFemale;
+        settings.body.isFemale = isFemale;
 
-        // Build
-        /*this.buildSVG(settings, true);
-        this.buildClothesTop(settings, true);
-        this.buildClothesLegs(settings, true);*/
-
-        //this.randomCharacterSettings = settings;
         this.setState(settings);
-        
-        /*this.buildSVG(this.state, true);
-        this.buildClothesTop(this.state, true);
-        this.buildClothesLegs(this.state, true);*/
         
     }
 
@@ -179,7 +168,7 @@ export default class CharacterEditor extends Component {
     }
 
     render() {
-        let propGroups = this.groupByArray(CharacterProperties.propsMale, 'cat');
+        let propGroups = this.groupByArray(this.state.body.isFemale ? CharacterProperties.propsFemale : CharacterProperties.propsMale, 'cat');
 
         let elements = propGroups.map(group => 
             <PropertyGroupBox name={group.key} key={group.key} >
@@ -189,6 +178,8 @@ export default class CharacterEditor extends Component {
                             return <PropertyColorPicker prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
                         else if (prop.type === 'string')
                             return <PropertyDropdown prop={prop} key={prop.cat + prop.name} items={prop.items} change={this.setProp.bind(this)}/>
+                        else if (prop.type === 'bool')
+                            return <PropertyCheckbox prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)}/>
                         else 
                             return <PropertySlider prop={prop} key={prop.cat + prop.name} change={this.setProp.bind(this)} />
                     })
@@ -200,14 +191,15 @@ export default class CharacterEditor extends Component {
             <div id="character-editor">
                 <div id="character-toolbar">
                     <button className="btn-toolbar" onClick={this.randomizeCharacter}>Randomize</button>
-                    <button className="btn-toolbar" onClick={this.finish}>Connect</button>                   
+                    <button className="btn-toolbar" onClick={this.finish}>Connect</button>       
+                    <input placeholder="Enter name..." onChange={this.handleNameChange}></input>
                 </div>
                 <div id="character-props">
                     {elements}
                 </div>
                 <div id="character-preview" tabIndex="0">
                     <svg id="character-svg">
-                        <Character isFemale={this.state.isFemale} id="player1-preview" settings={this.state} />
+                        <Character isFemale={this.state.body.isFemale} id="player1-preview" settings={this.state} />
                     </svg>
                 </div>
             </div>
@@ -317,6 +309,35 @@ class PropertyDropdown extends Component {
                 <select className="dropdown" onChange={this.valueChanged}>
                     {items}
                 </select>
+            </div>
+        );
+    }
+}
+
+class PropertyCheckbox extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            checked: this.props.prop.val
+        }
+
+        this.valueChanged = this.valueChanged.bind(this);
+    }
+
+    valueChanged(ev) {
+        this.setState({
+            checked: ev.target.checked
+        });
+        this.props.change(this.props.prop, ev.target.checked);
+    }
+
+    render() {
+        return (
+            <div className="prop-checkbox">
+                <span className="prop-label">{this.props.prop.name}</span>
+                <input type="checkbox" className="prop-value" checked={this.state.checked} onChange={this.valueChanged} />
             </div>
         );
     }

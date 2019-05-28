@@ -19,6 +19,8 @@ import Clothes from './Clothes';
 
 export default class Character extends Component {
 
+    static OFFSET_HEIGHT = 550;
+
     constructor(props) {
         super(props);
 
@@ -84,6 +86,11 @@ export default class Character extends Component {
                 this.createBodyAnimations();
             });
         }
+
+        // Basic animations
+        // Body Shaking
+        SVG.select('.character-head').animate(500).dmove(0, 5).loop(true, true);
+        SVG.select('.torso-outer').animate(500).scale(1, 1.03, 0, 0).loop(true, true);
     }
 
     componentWillMount() {
@@ -142,7 +149,7 @@ export default class Character extends Component {
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesTop(props.settings.isFemale, props.settings.clothes.styleTop).then(text => {
+        Clothes.getClothesTop(props.settings.body.isFemale, props.settings.clothes.styleTop).then(text => {
             if (nakedTop === false) {
                 var parser = new DOMParser();
 
@@ -155,8 +162,8 @@ export default class Character extends Component {
                 let lowerArm = doc.getElementById('lower-arm');
                 let torso = doc.getElementById('torso');
 
-                //if (torso != null)
-                //    torso.removeAttribute('id');
+                if (torso != null)
+                    torso.removeAttribute('id');
                 
                 clothes.clothUpperArm = upperArm != null ? upperArm.outerHTML : '';
                 clothes.clothLowerArm = lowerArm != null ? lowerArm.outerHTML : '';
@@ -178,7 +185,7 @@ export default class Character extends Component {
         }
 
         // Otherwise -> load clothes
-        Clothes.getClothesLegs(props.settings.isFemale, props.settings.clothes.styleLegs).then(text => {
+        Clothes.getClothesLegs(props.settings.body.isFemale, props.settings.clothes.styleLegs).then(text => {
             if (nakedLegs === false) {
                 var parser = new DOMParser();
 
@@ -256,7 +263,12 @@ export default class Character extends Component {
             SVG.select(prefix + '.neck-group > path').attr({style: `fill: ${this.props.settings.body.skinColor}`});
 
             // Hair
-            SVG.select(`#${this.props.id} .hair-group`).before(SVG.select(`#${this.props.id} .hair-back`).first());
+            SVG.select(`#${this.props.id} .torso-group`).before(SVG.select(`#${this.props.id} .hair-back`).first());
+            
+            // Arms
+            SVG.select(prefix + '.left-arm').back();
+            SVG.select(prefix + '.right-arm').back();
+
             
         }
         else {
@@ -269,6 +281,9 @@ export default class Character extends Component {
             // Hair
             SVG.select(`#${this.props.id} .neck-group`).before(SVG.select(`#${this.props.id} .hair-back`).first());
             
+            // Arms
+            SVG.select(prefix + '.left-arm').front();
+            SVG.select(prefix + '.right-arm').front();
         }
     }
 
@@ -284,15 +299,44 @@ export default class Character extends Component {
             anims.push(SVG.select('.left-leg').animate(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0).loop(true, true));
             anims.push(SVG.select('.right-leg').animate(500).delay(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0).loop(true, true));
 
-            // Body Shaking
-            //anims.push(SVG.select('.character-head').animate(500).dmove(0, 5).loop(true, true));
-            anims.push(SVG.select('.torso-outer').animate(500).scale(1, 1.03, 0, 0).loop(true, true));
-
             this.setState({
                 isWalking: true,
                 bodyAnimations: anims
             });
         }
+    }
+
+    bodyAnimationFirst() {
+        if (this.state.isWalking) {
+            // Arms
+            SVG.select('.right-arm').animate(500).scale(1, 1.2, 0, 0);
+            SVG.select('.left-arm').animate(500).delay(500).scale(1, 1.2, 0, 0);
+
+            
+            SVG.select('.left-leg').animate(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0);
+            SVG.select('.right-leg').animate(500).delay(500).scale(this.state.animOffsets.legScale, 1.2, 0, 0);
+        }
+    }
+
+    bodyAnimationSecond() {
+        // Arms
+        SVG.select('.right-arm').animate(500).scale(1.2, 1, 0, 0);
+        SVG.select('.left-arm').animate(500).delay(500).scale(1.2, 1, 0, 0);
+
+        
+        SVG.select('.left-leg').animate(500).scale(1.2, this.state.animOffsets.legScale, 0, 0);
+        SVG.select('.right-leg').animate(500).delay(500).scale(1.2, this.state.animOffsets.legScale, 0, 0);
+    }
+
+    stopBodyAnimation() {
+        var anims = this.state.bodyAnimations;
+        for (var i = 0; i < anims.length; i++) {
+            anims[i].stop(false, true);
+        }
+        this.setState({
+            isWalking: false,
+            bodyAnimations: []
+        });
     }
 
     /*move(direction) {
@@ -316,12 +360,9 @@ export default class Character extends Component {
             });
         }
         
-        //this.createBodyAnimations();
+        this.createBodyAnimations();
     }*/
-    move(direction) {
-        var step = 8;
-        var duration = 1000;
-
+    move(direction, prevPosition) {
         //SVG.get(this.props.id).dmove(step * direction.x, step * direction.y);
         
         if (direction.x !== this.state.direction.x || direction.y !== this.state.direction.y) {
@@ -333,20 +374,32 @@ export default class Character extends Component {
                 this.changeDirection(prevDirection);
             });
         }
-        
-        //this.createBodyAnimations();
+    
     }
 
 
     stopMoving() {
-        /*if (this.playerAnimation)
-            this.playerAnimation.stop(false, true);*/
-        //this.stopBodyAnimation();
+        
     }
 
-    moveTo(x, y) {
+    moveTo(x, y, previousPosition) {
         //SVG.get(this.props.id).move(x, y);
-        SVG.adopt(this.state.mainRef.current).move(x, y);
+        var svg = SVG.adopt(this.state.mainRef.current);
+        if (previousPosition) {
+            previousPosition.x = svg.x();
+            previousPosition.y = svg.y();
+        }
+        svg.move(x, y);
+
+        return svg.x() !== previousPosition.x || svg.y() !== previousPosition.y; // True if charater has actually moved
+
+        /*if (svg.x() !== previousPosition.x || svg.y() !== previousPosition.y) {
+            this.createBodyAnimations();
+        }
+        else {
+            if (this.state.isWalking)
+                this.stopBodyAnimation();
+        }*/
     }
 
     moveBy(x, y) {
@@ -384,6 +437,11 @@ export default class Character extends Component {
         this.setState({
             chatMessage: msg
         });
+        setTimeout(() => {
+            this.setState({
+                chatMessage: ''
+            });
+        }, 1500);
     }
 
     startBlinkAnimation() {
@@ -396,25 +454,14 @@ export default class Character extends Component {
         });*/
     }
 
-    stopBodyAnimation() {
-        var anims = this.state.bodyAnimations;
-        for (var i = 0; i < anims.length; i++) {
-            anims[i].stop(true, true);
-        }
-        this.setState({
-            isWalking: false,
-            bodyAnimations: []
-        });
-    }
-
     getBounds() {
         var element = SVG.get(this.props.id);
-        return new Rectangle(element.x() - 50, element.y() + 550, 200, 150);
+        return new Rectangle(element.x() - 50, element.y() + Character.OFFSET_HEIGHT, 200, 150);
     }
 
     render() {
         return (
-            <g id={this.props.id} ref={this.state.mainRef} transform={`translate(0 100) scale(${this.props.settings.zoom} ${this.props.settings.zoom})`} >
+            <g id={this.props.id} ref={this.state.mainRef} transform={`translate(100 100)`} >
                 <g className="character-inner">
                     <defs>
                         <linearGradient id="mouth-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -481,12 +528,14 @@ export default class Character extends Component {
 
                     <g className="torso-outer">
                         <Torso bodyProps={this.props.settings.body} isFemale={this.props.isFemale} />
-                        <g transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
+                        <g className="torso-clothes" transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
                     </g>
 
-                    <rect x="-40" y="550" width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />
+                    <rect x="-40" y={Character.OFFSET_HEIGHT} width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />
                 </g>
-                <text className="player-chat-message" x="0" y="-50">{this.state.chatMessage}</text>
+
+                <text className="player-name-text" x="0" y="-120">{this.props.settings.name}</text>
+                <text className="player-chat-message" x="0" y="-80">{this.state.chatMessage}</text>
             </g>
         );
     }

@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import SVG from 'svg.js';
 import Character from '../editor/Character';
 
-import Rectangle from '../util/Rectangle';
-import Collision from './Collision';
-
 import mapMap01 from '../resources/world/map01.svg';
 import mapCave01 from '../resources/world/cave01.svg';
 
@@ -19,7 +16,7 @@ export default class World extends Component {
             world: '',
             worldDefs: '',
             colliders: [],
-            spawnPoint: {x: 0, y: 0}
+            staticObjects: []
         };
     }
 
@@ -29,12 +26,12 @@ export default class World extends Component {
         
     }
 
-    componentWillReceiveProps() {
-        this.loadWorld(mapMap01);
+    componentWillMount() {
+        this.loadWorld('map01');
     }
 
-    loadWorld(worldData) {
-        fetch(worldData)
+    loadWorld(worldId) {
+        fetch(World.worldMap.get(worldId))
         .then(r => r.text())
         .then(text => {
             var parser = new DOMParser();
@@ -51,55 +48,55 @@ export default class World extends Component {
                 colliders.push(SVG.adopt(collision.children.item(i)));
             }
 
-            // Spawn Point
-            var spawn = doc.getElementById('spawn');
-            spawn.style.opacity = 0;
-            var spawnSvg = SVG.adopt(spawn);            
+            // Static objects -> first level children under root (for depth checks)
+            var staticObjects = [];
+            for (var i = 0; i < root.children.length; i++) {
+                var obj = root.children.item(i);
+                if (obj.id !== 'map-bg') {
+                    var svgObj = SVG.adopt(obj); // Have to do this??
+                    var objData = {
+                        id: obj.id,
+                        y: svgObj.y(),
+                        height: svgObj.height()
+                    };
+                    if (obj.tagName === 'g') {
+                        // Give the group object the ypos and height of its first child (usually shadow)
+                        var child = SVG.adopt(obj.children.item(0));
+                        objData.y = child.y();
+                        objData.height = child.height();
+                    }
+                    staticObjects.push(objData);
+                }
+            }
+            staticObjects.sort((a, b) => (a.y + a.height) - (b.y + b.height));
 
             this.setState({
                 world: root.outerHTML,
                 worldDefs: defs,
                 colliders: colliders,
-                spawnPoint: {x: spawnSvg.x(), y: spawnSvg.y()}
+                staticObjects: staticObjects
             });
         });
     }
 
     componentDidUpdate() {
-        // Put player on spawn point
-        //SVG.get('player1').move(this.state.spawnPoint.x, this.state.spawnPoint.y);
-
-        //SVG.get('player2').move(300, 200);
+        // Sort static objects by y-position
+        for (var i = 0; i < this.state.staticObjects.length - 1; i++) {
+            var obj = this.state.staticObjects[i];
+            var nextObj = this.state.staticObjects[i + 1];
+            SVG.get(obj.id).after(SVG.get(nextObj.id));
+        }
     }
 
-    handleCollisions(player) {
-        var playerRect = player.getBounds();
-        for (var i = 0; i < this.state.colliders.length; i++) {
-            var collider = this.state.colliders[i];
-            var rect = new Rectangle(collider.x(), collider.y(), collider.width(), collider.height());
-            
-            //if (playerRect.intersects(rect)) {
-            var depth = playerRect.getIntersectionDepth(rect);
-            if (depth.x !== 0 && depth.y !== 0) {
-
-                var collisionType = Number(collider.attr('collision-type'));
-                if (!collisionType || collisionType === Collision.TYPE_SOLID) {
-                    // Blocking object
-                    player.stopMoving();
-                    if (Math.abs(depth.x) < Math.abs(depth.y)) {
-                        player.moveBy(depth.x, 0);
-                    }
-                    else {
-                        player.moveBy(0, depth.y);
-                    }
-                }
-                else {
-                    // Non-blocking -> execute type specific action
-                    if (collisionType === Collision.TYPE_SECONDARY_EXIT) {
-                        var nextWorld = collider.attr('secondary-exit');
-                        this.loadWorld(World.worldMap.get(nextWorld));
-                    }
-                }
+    setCharacterDepth(character) {
+        var charY = character.y() + Character.OFFSET_HEIGHT;
+        for (var i = 0; i < this.state.staticObjects.length; i++) {
+            var obj = this.state.staticObjects[i];
+            if (obj.y + obj.height > charY) {
+                // First static object that's 'in front of' character -> put character behind it 
+                console.log(obj.id);
+                SVG.get(obj.id).before(character);
+                return;
             }
         }
     }

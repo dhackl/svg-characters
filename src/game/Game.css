@@ -17,3 +17,13 @@ body {
     right: 0;
     top: 0;
 }
+#chat-panel input {
+    padding: 10px 20px;
+    border: 2px solid #000;
+}
+#chat-panel button {
+    padding: 10px 20px;
+    background: #222288;
+    color: #fff;
+    border-radius: 4px;
+}

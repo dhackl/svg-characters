@@ -11,6 +11,11 @@ export default class CharacterProperties {
         val: 0
     }, {
         cat: 'body',
+        name: 'isFemale',
+        type: 'bool',
+        val: false,
+    }, {
+        cat: 'body',
         name: 'skinColor',
         type: 'color',
         val: '#f3bf85',
@@ -148,6 +153,11 @@ export default class CharacterProperties {
         min: 0,
         max: 3,
         val: 0
+    }, {
+        cat: 'body',
+        name: 'isFemale',
+        type: 'bool',
+        val: false,
     }, {
         cat: 'body',
         name: 'skinColor',

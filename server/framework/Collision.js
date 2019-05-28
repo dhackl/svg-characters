@@ -7,7 +7,7 @@ module.exports = class Collision {
 
     
 
-    static handleCollision(player, world) {
+    static handleCollision(player, world, collisionData) {
         var playerRect = new Rectangle(player.x - 50, player.y + 550, 200, 150);
         for (var i = 0; i < world.colliders.length; i++) {
             var collider = world.colliders[i];
@@ -32,8 +32,7 @@ module.exports = class Collision {
                     // Non-blocking -> execute type specific action
                     if (collisionType === TYPE_SECONDARY_EXIT) {
                         var nextWorld = collider.attributes['secondary-exit'];
-                        //this.loadWorld(World.worldMap.get(nextWorld));
-                        console.log(nextWorld);
+                        collisionData.nextWorld = nextWorld;
                     }
                 }
             }

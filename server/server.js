@@ -34,13 +34,16 @@ io.on('connection', function(socket) {
 
     // Add newly connected players
     socket.on('new-player', data => {
+        var initWorld = 'map01';
+
         players[socket.id] = {
-            x: 300,
-            y: 100,
+            x: worlds.get(initWorld).spawnPoint.x,
+            y: worlds.get(initWorld).spawnPoint.y,
             direction: {x: 0, y: 1}
         };
         playerData[socket.id] = {
-            characterProps: data.characterProps
+            characterProps: data.characterProps,
+            currentWorld: initWorld 
         };
 
         io.sockets.emit('update-player-data', playerData);
@@ -49,6 +52,7 @@ io.on('connection', function(socket) {
     // Update player movements
     socket.on('movement', data => {
         var player = players[socket.id] || { x: 0, y: 0, direction: {} };
+        var pData = playerData[socket.id];
         var step = 8;
         player.x += data.x * step;
         player.y += data.y * step;
@@ -56,7 +60,22 @@ io.on('connection', function(socket) {
         player.direction.y = data.y;
 
         // Handle collisions server-side
-        Collision.handleCollision(player, world);
+        var collisionData = { nextWorld: null };
+        Collision.handleCollision(player, worlds.get(pData.currentWorld), collisionData);
+
+        // Changed world
+        if (collisionData.nextWorld) {
+            // Move player to new spawn point
+            player.x = worlds.get(collisionData.nextWorld).spawnPoint.x;
+            player.y = worlds.get(collisionData.nextWorld).spawnPoint.y;
+
+            pData.currentWorld = collisionData.nextWorld;
+
+            socket.emit('world-change', {
+                worldId: collisionData.nextWorld
+            });
+            io.sockets.emit('update-player-data', playerData);
+        }
     });
 
     // Remove disconnected players
@@ -82,24 +101,30 @@ setInterval(function() {
 }, 1000 / SYNC_INTERVAL);
 
 
-// Load world
-var world = {
-    colliders: [],
-    spawnPoint: {x: 0, y: 0}
-};
-fs.readFile('../src/resources/world/map01.svg', (err, data) => {
-    svgson.parse(data.toString()).then(json => {
-        
-        // Colliders
-        var collisions = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'map-collision');
-        for (var i = 0; i < collisions.children.length; i++) {
-            world.colliders.push(collisions.children[i]);
-        }
+// Load worlds
+var worlds = new Map();
+var worldIds = ['map01', 'cave01'];
+worldIds.forEach(worldId => {
+    fs.readFile(`../src/resources/world/${worldId}.svg`, (err, data) => {
+        svgson.parse(data.toString()).then(json => {
 
-        // Spawn Point
-        var spawn = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'spawn');
-        world.spawnPoint.x = Number(spawn.attributes['x']);
-        world.spawnPoint.y = Number(spawn.attributes['y']);
+            var world = {
+                colliders: [],
+                spawnPoint: {x: 0, y: 0}
+            };
 
+            // Colliders
+            var collisions = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'map-collision');
+            for (var i = 0; i < collisions.children.length; i++) {
+                world.colliders.push(collisions.children[i]);
+            }
+    
+            // Spawn Point
+            var spawn = json.children.find(child => child.attributes['id'] && child.attributes['id'] === 'spawn');
+            world.spawnPoint.x = Number(spawn.attributes['x']);
+            world.spawnPoint.y = Number(spawn.attributes['y']);
+    
+            worlds.set(worldId, world);
+        });
     });
 });

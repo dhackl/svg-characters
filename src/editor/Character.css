@@ -1,5 +1,11 @@
-.character-chat-message {
-    color: #fff;
+.player-name-text {
+    color: #00ff44;
     font-size: 20px;
     font-weight: 600;
+}
+.player-chat-message {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 400;
+    text-align: center;
 }

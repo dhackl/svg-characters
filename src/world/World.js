@@ -94,7 +94,6 @@ export default class World extends Component {
             var obj = this.state.staticObjects[i];
             if (obj.y + obj.height > charY) {
                 // First static object that's 'in front of' character -> put character behind it 
-                console.log(obj.id);
                 SVG.get(obj.id).before(character);
                 return;
             }

@@ -9,7 +9,7 @@ import Collision from '../world/Collision';
 
 import openSocket from 'socket.io-client';
 //const socket = openSocket('http://localhost:5080');
-const socket = openSocket('https://svg-characters.herokuapp.com:27476');
+const socket = openSocket('https://svg-characters.herokuapp.com:5080');
 
 
 

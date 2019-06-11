@@ -11,7 +11,7 @@ var io = socketIO(server);
 
 var Collision = require('./framework/Collision');
 
-const PORT = process.env.PORT || 5080;
+const PORT = 5080;
 const SYNC_INTERVAL = 30; // FPS
 
 app.set('port', PORT);

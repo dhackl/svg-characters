@@ -105,7 +105,7 @@ setInterval(function() {
 var worlds = new Map();
 var worldIds = ['map01', 'cave01'];
 worldIds.forEach(worldId => {
-    fs.readFile(`resources/world/${worldId}.svg`, (err, data) => {
+    fs.readFile(`resources/world/map01.svg`, (err, data) => {
         svgson.parse(data.toString()).then(json => {
 
             var world = {

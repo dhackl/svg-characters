@@ -16,7 +16,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "postinstall": "npm install --prefix server",
     "heroku-postbuild": "npm run build"
   },
   "homepage" : "https://svg-characters.herokuapp.com/"

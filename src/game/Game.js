@@ -7,10 +7,9 @@ import CharacterEditor from '../editor/CharacterEditor';
 import World from '../world/World';
 import Collision from '../world/Collision';
 
-import openSocket from 'socket.io-client';
+import io from 'socket.io-client';
 //const socket = openSocket('http://localhost:5080');
-const socket = openSocket('https://svg-characters.herokuapp.com:5080');
-
+const socket = io('ws://svg-characters-server.herokuapp.com');
 
 export default class Game extends Component {
 

@@ -11,6 +11,8 @@ import io from 'socket.io-client';
 //const socket = openSocket('http://localhost:5080');
 const socket = io('wss://svg-characters-server.herokuapp.com', { secure: true });
 
+const FPS = 60;
+
 export default class Game extends Component {
 
     constructor(props) {
@@ -122,6 +124,12 @@ export default class Game extends Component {
             var senderCharacter = this.getCharacterById('c-' + data.sender);
             senderCharacter.setChatMessage(data.message);
         });
+
+
+        // Start main game loop
+        setInterval(() => {
+            this.update();
+        }, 1000 / FPS);
     }
 
     componentDidUpdate() {
@@ -170,6 +178,7 @@ export default class Game extends Component {
     handleKeyUp() {
         var player = this.getCharacterById(this.myPlayerId);
         player.stopMoving();
+        socket.emit('movement', {x: 0, y: 0});
     }
 
     getCharacterById(id) {
@@ -177,6 +186,27 @@ export default class Game extends Component {
         if (character)
             return character.ref.current;
         return null;
+    }
+
+    update() {
+        // Called 60 times per second
+        for (var i = 0; i < this.state.characters.length; i++) {
+            let char = this.state.characters[i];
+            let character = this.getCharacterById(char.id);
+            let speed = 2;
+
+            var prevPosition = {x: 0, y: 0};
+            var hasMoved = character.moveInDirection(speed, prevPosition);
+            //character.move(player.direction, prevPosition);
+
+            // Depth calculation
+            if (hasMoved) {
+                var world = this.worldRef.current;
+                var characterSvg = SVG.get('c-' + char.id);
+                if (characterSvg)
+                    world.setCharacterDepth(characterSvg);
+            }
+        }
     }
 
     render() {

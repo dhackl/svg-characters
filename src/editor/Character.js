@@ -379,7 +379,10 @@ export default class Character extends Component {
 
 
     stopMoving() {
-        
+        var direction = {x: 0, y: 0};
+        this.setState({
+            direction: direction
+        });
     }
 
     moveTo(x, y, previousPosition) {
@@ -402,8 +405,22 @@ export default class Character extends Component {
         }*/
     }
 
-    moveBy(x, y) {
-        SVG.get(this.props.id).dmove(x, y);
+    moveInDirection(speed, previousPosition) {
+        if (this.state.direction.x === 0 && this.state.direction.y === 0)
+            return false;
+
+        //SVG.get(this.props.id).dmove(x, y);
+        var svg = SVG.adopt(this.state.mainRef.current);
+        if (previousPosition) {
+            previousPosition.x = svg.x();
+            previousPosition.y = svg.y();
+        }
+
+        svg.move(
+            previousPosition.x + this.state.direction.x * speed, 
+            previousPosition.y + this.state.direction.y * speed);
+        
+        return svg.x() !== previousPosition.x || svg.y() !== previousPosition.y;
     }
 
     changeDirection(prevDirection) {

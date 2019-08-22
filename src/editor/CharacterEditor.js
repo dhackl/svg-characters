@@ -119,7 +119,7 @@ export default class CharacterEditor extends Component {
         }, []); 
     }
 
-    randomizeCharacter() {
+    getRandomCharacterSettings() {
         var settings = {};
         var isFemale = Math.random() < 0.5;
         var charProps = isFemale ? CharacterProperties.propsFemale : CharacterProperties.propsMale;
@@ -159,8 +159,11 @@ export default class CharacterEditor extends Component {
 
         settings.body.isFemale = isFemale;
 
-        this.setState(settings);
-        
+        return settings;   
+    }
+
+    randomizeCharacter() {
+        this.setState(this.getRandomCharacterSettings());
     }
 
     finish() {

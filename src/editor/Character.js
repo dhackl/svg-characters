@@ -134,6 +134,8 @@ export default class Character extends Component {
             svg: pathStr,
             headBounds: new Rectangle(left, top, right - left, bottom - top),
             mainRef: React.createRef()
+        }, () => {
+            this.svg = SVG.adopt(this.state.mainRef.current);
         });
 
         // ===== Build clothes top
@@ -362,39 +364,40 @@ export default class Character extends Component {
         
         this.createBodyAnimations();
     }*/
-    move(direction, prevPosition) {
+    move(direction) {
         //SVG.get(this.props.id).dmove(step * direction.x, step * direction.y);
         
         if (direction.x !== this.state.direction.x || direction.y !== this.state.direction.y) {
             var prevDirection = this.state.direction;
-            if (prevDirection.x === 0) prevDirection.x = 1;
+            //if (prevDirection.x === 0) prevDirection.x = 1;
             this.setState({
                 direction: direction
             }, () => {
                 this.changeDirection(prevDirection);
             });
+
+            return true;
         }
     
+        return false;
     }
 
 
-    stopMoving() {
+    /*stopMoving() {
         var direction = {x: 0, y: 0};
         this.setState({
             direction: direction
         });
-    }
+    }*/
 
     moveTo(x, y, previousPosition) {
-        //SVG.get(this.props.id).move(x, y);
-        var svg = SVG.adopt(this.state.mainRef.current);
         if (previousPosition) {
-            previousPosition.x = svg.x();
-            previousPosition.y = svg.y();
+            previousPosition.x = this.svg.x();
+            previousPosition.y = this.svg.y();
         }
-        svg.move(x, y);
+        this.svg.move(x, y);
 
-        return svg.x() !== previousPosition.x || svg.y() !== previousPosition.y; // True if charater has actually moved
+        return this.svg.x() !== previousPosition.x || this.svg.y() !== previousPosition.y; // True if charater has actually moved
 
         /*if (svg.x() !== previousPosition.x || svg.y() !== previousPosition.y) {
             this.createBodyAnimations();
@@ -409,45 +412,47 @@ export default class Character extends Component {
         if (this.state.direction.x === 0 && this.state.direction.y === 0)
             return false;
 
-        //SVG.get(this.props.id).dmove(x, y);
-        var svg = SVG.adopt(this.state.mainRef.current);
         if (previousPosition) {
-            previousPosition.x = svg.x();
-            previousPosition.y = svg.y();
+            previousPosition.x = this.svg.x();
+            previousPosition.y = this.svg.y();
         }
 
-        svg.move(
+        this.svg.move(
             previousPosition.x + this.state.direction.x * speed, 
             previousPosition.y + this.state.direction.y * speed);
         
-        return svg.x() !== previousPosition.x || svg.y() !== previousPosition.y;
+        return this.svg.x() !== previousPosition.x || this.svg.y() !== previousPosition.y;
     }
 
     changeDirection(prevDirection) {
         var dir = this.state.direction;
-        var sideView = dir.x !== 0;
-        var backView = dir.y === -1;
-        if (this.state.sideView !== sideView) {
-            this.setState({
-                sideView: sideView
-            }, () => this.updateSideView());
-        }
-        if (this.state.backView !== backView) {
-            this.setState({
-                backView: backView
-            }, () => this.updateBackView());
+
+        // Adopt body posture to view angle (check for 0,0 to preserve pose when stop moving)
+        if (!(dir.x === 0 && dir.y === 0)) {
+            var sideView = dir.x !== 0;
+            var backView = dir.y === -1;
+            if (this.state.sideView !== sideView) {
+                this.setState({
+                    sideView: sideView
+                }, () => this.updateSideView());
+            }
+            if (this.state.backView !== backView) {
+                this.setState({
+                    backView: backView
+                }, () => this.updateBackView());
+            }
         }
 
-        
-
+        // Horizontal Flipping (looking left or right) 
         var characterInner = SVG.select(`#${this.props.id} .character-inner`).first();
-        if (dir.x !== 0 && dir.x !== prevDirection.x) {
-            characterInner.scale(-1, 1);
+        if (characterInner) {
+            if (dir.x !== -1 && dir.x !== prevDirection.x) {
+                characterInner.scale(-1, 1);
+            }
+            else if (dir.x === 0 && prevDirection.x === -1) {
+                characterInner.scale(-1, 1);            
+            }
         }
-        else if (dir.x === 0 && prevDirection.x === -1) {
-            characterInner.scale(-1, 1);            
-        }
-        
     }
 
     setChatMessage(msg) {

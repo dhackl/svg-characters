@@ -18,6 +18,8 @@ export default class World extends Component {
             colliders: [],
             staticObjects: []
         };
+
+        this.doDepthCheck = true;
     }
 
     static init() {
@@ -31,6 +33,9 @@ export default class World extends Component {
     }
 
     loadWorld(worldId) {
+        this.doDepthCheck = false;
+        console.log('depth check off');
+
         fetch(World.worldMap.get(worldId))
         .then(r => r.text())
         .then(text => {
@@ -75,6 +80,9 @@ export default class World extends Component {
                 worldDefs: defs,
                 colliders: colliders,
                 staticObjects: staticObjects
+            }, () => {
+                this.doDepthCheck = true;
+                console.log('depth check on');
             });
         });
     }
@@ -89,6 +97,9 @@ export default class World extends Component {
     }
 
     setCharacterDepth(character) {
+        if (!this.doDepthCheck)
+            return;
+
         var charY = character.y() + Character.OFFSET_HEIGHT;
         for (var i = 0; i < this.state.staticObjects.length; i++) {
             var obj = this.state.staticObjects[i];

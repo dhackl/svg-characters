@@ -8,8 +8,8 @@ import World from '../world/World';
 import Collision from '../world/Collision';
 
 import io from 'socket.io-client';
-//const socket = openSocket('http://localhost:5080');
-const socket = io('wss://svg-characters-server.herokuapp.com', { secure: true });
+const socket = io('http://localhost:5080');
+//const socket = io('wss://svg-characters-server.herokuapp.com', { secure: true });
 
 const FPS = 60;
 
@@ -27,6 +27,7 @@ export default class Game extends Component {
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.connectToServer = this.connectToServer.bind(this);
 
+        this.editorRef = React.createRef();
         this.worldRef = React.createRef();
         this.gameViewRef = React.createRef();
 
@@ -43,6 +44,10 @@ export default class Game extends Component {
             zoom: 1.0
         };
 
+        this.player = null;
+        this.playerDirection = { x: 0, y: 0 };
+        this.canUpdateDepth = true;
+        
         // Update player position etc.
         socket.on('state', players => {
             if (this.state.inPlayMode === true) {
@@ -55,61 +60,67 @@ export default class Game extends Component {
                     if (character) {
                         var prevPosition = {x: 0, y: 0};
                         var hasMoved = character.moveTo(player.x, player.y, prevPosition);
-                        character.move(player.direction, prevPosition);
+                        character.move(player.direction);
 
                         // Depth calculation
                         if (hasMoved) {
                             var world = this.worldRef.current;
-                            var characterSvg = SVG.get('c-' + id);
-                            if (characterSvg)
-                                world.setCharacterDepth(characterSvg);
+                            if (character.svg)
+                                world.setCharacterDepth(character.svg);
                         }
                     }
 
-                    // Move camera for my player
-                    if (this.myPlayerId === 'c-' + id) {
-                        
-                        var relativePlayerX = player.x + this.camera.position.x;
-                        var relativePlayerY = player.y + this.camera.position.y;
-
-                        // Scrolling in X
-                        if (relativePlayerX > this.camera.SCROLL_POS_RIGHT)
-                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_RIGHT, -4000), 0);
-                        else if (relativePlayerX < this.camera.SCROLL_POS_LEFT)
-                            this.camera.position.x = Math.min(Math.max(-player.x + this.camera.SCROLL_POS_LEFT, -4000), 0);
-                        // Scrolling in Y
-                        if (relativePlayerY > this.camera.SCROLL_POS_DOWN)
-                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_DOWN, -4000), 0);
-                        else if (relativePlayerY < this.camera.SCROLL_POS_UP)
-                            this.camera.position.y = Math.min(Math.max(-player.y + this.camera.SCROLL_POS_UP, -4000), 0);
-            
-
-                        this.gameViewSvg.translate(this.camera.position.x, this.camera.position.y);
-                    }
+                    
                 }
             }
         });
 
         // New player added or existing player removed -> update state
         socket.on('update-player-data', playerData => {
-            var characters = [];
 
+            this.resetCharacterDomPosition();
+
+            
+            //console.log(playerData);
+            var characters = this.state.characters;
+            
             for (var id in playerData) {
                 var pData = playerData[id];
 
-                // Load all character which are in my world
+                var charId = 'c-' + id;
+                var character = characters.find(char => char.id === charId);
+                
+
+                // Load all characters which are in my world
                 if (pData.currentWorld === this.currentWorldId) {
-                    characters.push({
-                        id: 'c-' + id,
-                        settings: pData.characterProps,
-                        ref: React.createRef()
-                    });
+                    if (!character) {
+                        // Character doesn't exist yet -> add it to my world
+                        characters.push({
+                            id: 'c-' + id,
+                            settings: pData.characterProps,
+                            ref: React.createRef()
+                        });
+                    }
+                    else {
+                        // Character already here -> nothing to do
+                    }
+                }
+                else {
+                    // Character not in my world
+
+                    if (character) {
+                        // Character still here (probably was in my world before) -> remove it
+                        characters.splice(characters.indexOf(character), 1);
+                    }
                 }
             }
 
             this.setState({
                 characters: characters
+            }, () => {
+                //console.log(document.getElementById('game-svg'));
             });
+
         });
 
         // Player has changed world -> load the new world
@@ -137,6 +148,8 @@ export default class Game extends Component {
     }
 
     connectToServer(characterProps) {
+        this.spawnNpcCharacters();
+
         socket.emit('new-player', {
             characterProps: characterProps
         });
@@ -149,36 +162,51 @@ export default class Game extends Component {
             inPlayMode: true
         });
 
+        this.player = this.getCharacterById(this.myPlayerId);
+    }
+
+    spawnNpcCharacters() {
+        for (var i = 0; i < 5; i++) {
+            var props = this.editorRef.current.getRandomCharacterSettings();
+            socket.emit('new-npc', {
+                characterProps: props
+            });
+        }
     }
 
     handleKeyDown(ev) {
         if (!this.state.inPlayMode)
             return;
 
-        var xDir = 0, yDir = 0;
         if (ev.key === 'ArrowLeft') {
-            xDir = -1;
+            this.playerDirection.x = -1;
         }
         else if (ev.key === 'ArrowRight') {
-            xDir = 1;
+            this.playerDirection.x = 1;
         }
         else if (ev.key === 'ArrowUp') {
-            yDir = -1;
+            this.playerDirection.y = -1;
         }
         else if (ev.key === 'ArrowDown') {
-            yDir = 1;
+            this.playerDirection.y = 1;
         }
 
-        var player = this.getCharacterById(this.myPlayerId);
-        var direction = {x: xDir, y: yDir};
-        player.move(direction);
-        socket.emit('movement', direction);
     }
 
-    handleKeyUp() {
-        var player = this.getCharacterById(this.myPlayerId);
-        player.stopMoving();
-        socket.emit('movement', {x: 0, y: 0});
+    handleKeyUp(ev) {
+        if (ev.key === 'ArrowLeft') {
+            this.playerDirection.x = 0;
+        }
+        else if (ev.key === 'ArrowRight') {
+            this.playerDirection.x = 0;
+        }
+        else if (ev.key === 'ArrowUp') {
+            this.playerDirection.y = 0;
+        }
+        else if (ev.key === 'ArrowDown') {
+            this.playerDirection.y = 0;
+        }
+
     }
 
     getCharacterById(id) {
@@ -188,46 +216,85 @@ export default class Game extends Component {
         return null;
     }
 
+    // Called 60 times per second
     update() {
-        // Called 60 times per second
+        
+        var player = this.getCharacterById(this.myPlayerId);
+        if (!player)
+            return;
+
+        // Handle Keyboard Input 
+        if (player.move(this.playerDirection)) {
+            // Direction has changed -> notify server
+            socket.emit('movement', this.playerDirection);
+        }
+        
+
+        // Client-side player movement and prediction
         for (var i = 0; i < this.state.characters.length; i++) {
             let char = this.state.characters[i];
             let character = this.getCharacterById(char.id);
-            let speed = 2;
+            let speed = 4;
 
             var prevPosition = {x: 0, y: 0};
             var hasMoved = character.moveInDirection(speed, prevPosition);
             //character.move(player.direction, prevPosition);
 
-            // Depth calculation
-            if (hasMoved) {
-                var world = this.worldRef.current;
-                var characterSvg = SVG.get('c-' + char.id);
-                if (characterSvg)
-                    world.setCharacterDepth(characterSvg);
+        }
+
+        // Move camera for my player
+        this.handleCameraMovement(player);
+    }
+
+    handleCameraMovement(player) {
+                 
+        var relativePlayerX = player.svg.x() + this.camera.position.x;
+        var relativePlayerY = player.svg.y() + this.camera.position.y;
+
+        // Scrolling in X
+        if (relativePlayerX > this.camera.SCROLL_POS_RIGHT)
+            this.camera.position.x = Math.min(Math.max(-player.svg.x() + this.camera.SCROLL_POS_RIGHT, -4000), 0);
+        else if (relativePlayerX < this.camera.SCROLL_POS_LEFT)
+            this.camera.position.x = Math.min(Math.max(-player.svg.x() + this.camera.SCROLL_POS_LEFT, -4000), 0);
+        // Scrolling in Y
+        if (relativePlayerY > this.camera.SCROLL_POS_DOWN)
+            this.camera.position.y = Math.min(Math.max(-player.svg.y() + this.camera.SCROLL_POS_DOWN, -4000), 0);
+        else if (relativePlayerY < this.camera.SCROLL_POS_UP)
+            this.camera.position.y = Math.min(Math.max(-player.svg.y() + this.camera.SCROLL_POS_UP, -4000), 0);
+
+
+        this.gameViewSvg.translate(this.camera.position.x, this.camera.position.y);
+        
+    }
+
+    resetCharacterDomPosition() {
+        // Rearrange characters to be positioned like when they are first rendered, to prevent React fail
+        for (var i = 0; i < this.state.characters.length; i++) {
+            var char = this.state.characters[i];
+            var character = char.ref.current;
+            if (character && character.svg) {
+                SVG.get('collision-visualization').after(character.svg);
+                console.log(character.svg);
             }
+            
         }
     }
 
     render() {
-        // Rearrange characters before render to prevent React fail
-        for (var i = 0; i < this.state.characters.length; i++) {
-            var char = this.state.characters[i];
-            var charSvg = SVG.get(char.id);
-            if (charSvg)
-                SVG.get('collision-visualization').after(charSvg);
-        }
+
+        this.resetCharacterDomPosition();
 
         return(
             <div id="game-outer">
                 {this.state.inPlayMode === false &&
-                    <CharacterEditor onFinished={this.connectToServer} />
+                    <CharacterEditor ref={this.editorRef} onFinished={this.connectToServer} />
                 }
                 {this.state.inPlayMode === true && 
                     <div id="game-panel" onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp} tabIndex="0">
                         <svg id="game-svg" ref={this.gameViewRef}>
                             <World ref={this.worldRef}>
                                 {this.state.characters.map(character => 
+                                    
                                     <Character id={character.id} isFemale={character.settings.body.isFemale} settings={character.settings} ref={character.ref} key={'character' + character.id} />
                                 )}
                             </World>

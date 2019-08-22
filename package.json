@@ -5,7 +5,7 @@
   "dependencies": {
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
-    "react-scripts": "1.1.4",
+    "react-scripts": "^3.1.1",
     "serve": "^11.0.1",
     "socket.io-client": "^2.2.0",
     "svg.js": "^2.6.6"
@@ -18,5 +18,17 @@
     "eject": "react-scripts eject",
     "heroku-postbuild": "npm run build"
   },
-  "homepage" : "https://svg-characters.herokuapp.com/"
+  "homepage": "https://svg-characters.herokuapp.com/",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }

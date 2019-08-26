@@ -3,7 +3,8 @@ import SVG from 'svg.js';
 import Character from '../editor/Character';
 
 import mapMap01 from '../resources/world/map01.svg';
-import mapCave01 from '../resources/world/cave01.svg';
+import mapHouse01 from '../resources/world/house01.svg';
+import mapHouse01Top from '../resources/world/house01_top.svg'
 
 export default class World extends Component {
 
@@ -24,7 +25,8 @@ export default class World extends Component {
 
     static init() {
         World.worldMap.set('map01', mapMap01);
-        World.worldMap.set('cave01', mapCave01);
+        World.worldMap.set('house01', mapHouse01);
+        World.worldMap.set('house01_top', mapHouse01Top);
         
     }
 
@@ -34,7 +36,6 @@ export default class World extends Component {
 
     loadWorld(worldId) {
         this.doDepthCheck = false;
-        console.log('depth check off');
 
         fetch(World.worldMap.get(worldId))
         .then(r => r.text())
@@ -82,7 +83,6 @@ export default class World extends Component {
                 staticObjects: staticObjects
             }, () => {
                 this.doDepthCheck = true;
-                console.log('depth check on');
             });
         });
     }
@@ -117,7 +117,7 @@ export default class World extends Component {
                 <defs dangerouslySetInnerHTML={{__html: this.state.worldDefs}}></defs>
                 <g dangerouslySetInnerHTML={{__html: this.state.world}}></g>
 
-                <g id="collision-visualization">
+                <g id="collision-visualization" visibility="hidden">
                     {this.state.colliders.map((collider, idx) => 
                         <rect x={collider.x()} y={collider.y()} width={collider.width()} height={collider.height()} style={{fill:'#ff0000', opacity:0.1}} key={'crect'+idx} />
                     )}

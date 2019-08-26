@@ -37,8 +37,8 @@ export default class Game extends Component {
         this.camera = {
             SCROLL_POS_RIGHT: 1000,
             SCROLL_POS_LEFT: 800,
-            SCROLL_POS_UP: 300,
-            SCROLL_POS_DOWN: 600,
+            SCROLL_POS_UP: 200,
+            SCROLL_POS_DOWN: 400,
 
             position: {x: 0, y: 0},
             zoom: 1.0
@@ -234,7 +234,7 @@ export default class Game extends Component {
         for (var i = 0; i < this.state.characters.length; i++) {
             let char = this.state.characters[i];
             let character = this.getCharacterById(char.id);
-            let speed = 4;
+            let speed = 6;
 
             var prevPosition = {x: 0, y: 0};
             var hasMoved = character.moveInDirection(speed, prevPosition);
@@ -250,6 +250,8 @@ export default class Game extends Component {
                  
         var relativePlayerX = player.svg.x() + this.camera.position.x;
         var relativePlayerY = player.svg.y() + this.camera.position.y;
+
+        console.log(relativePlayerX + ', ' + relativePlayerY);
 
         // Scrolling in X
         if (relativePlayerX > this.camera.SCROLL_POS_RIGHT)
@@ -274,7 +276,6 @@ export default class Game extends Component {
             var character = char.ref.current;
             if (character && character.svg) {
                 SVG.get('collision-visualization').after(character.svg);
-                console.log(character.svg);
             }
             
         }

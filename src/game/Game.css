@@ -8,8 +8,8 @@ body {
     text-align: left;
 }
 #game-svg {
-    height: 2000px;
-    width: 2000px;
+    width: 3000px;
+    height: 3000px;
 }
 
 #chat-panel {

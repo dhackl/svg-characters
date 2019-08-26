@@ -504,6 +504,8 @@ export default class Character extends Component {
                         </filter>
                     </defs>
 
+                    <ellipse className="shadow" cx="40" cy={Character.OFFSET_HEIGHT + 140} rx="100" ry="50" style={{fill: '#000000', opacity: 0.3}} />
+
                     <g className="character-head">
                         <Neck neckProps={this.props.settings.neck} headBounds={this.state.headBounds} id={this.props.id} />
 
@@ -553,7 +555,8 @@ export default class Character extends Component {
                         <g className="torso-clothes" transform="translate(-45 155)" dangerouslySetInnerHTML={{__html: this.state.clothes.clothTorso}}></g>
                     </g>
 
-                    <rect x="-40" y={Character.OFFSET_HEIGHT} width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />
+                    
+                    <rect visibility="hidden" x="-40" y={Character.OFFSET_HEIGHT} width="170" height="150" style={{fill:'#ff0000', opacity:0.1}} />
                 </g>
 
                 <text className="player-name-text" x="0" y="-120">{this.props.settings.name}</text>
